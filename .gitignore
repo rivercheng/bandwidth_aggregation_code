@@ -1,0 +1,17 @@
+/data
+*.o
+up*
+M*
+S*
+*.8
+*moc*
+output*
+*.log
+log*
+udp_relay/
+test
+fec
+recorder
+record?
+emulator
+
