@@ -6,12 +6,14 @@
 #include "packetInfo.hh"
 
 class QUdpSocket;
+class QTimer;
 class UdpRelay : public QObject {
     Q_OBJECT
 public:
     UdpRelay(quint16 listenPort, QHostAddress sender, quint16 outPort, QVector<PacketInfo> infos);
 private slots:
     void processPendingDatagrams();
+    void processTimer();
 private:
     QUdpSocket *udpSocket;
     QHostAddress sender_;
@@ -19,5 +21,6 @@ private:
     QVector<PacketInfo> infos_;
     PacketList   pList_;
     qint32       id;
+    QTimer       *timer;
 };
 #endif

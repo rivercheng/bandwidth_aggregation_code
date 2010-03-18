@@ -1,16 +1,22 @@
 #include <QUdpSocket>
 #include <QTextStream>
 #include <QDebug>
+#include <QTimer>
+#include <cstdlib>
 #include "udpRelay.hh"
 FecUdpRelay::FecUdpRelay(QHostAddress listenAddr, quint16 listenPort, QHostAddress sender, quint16 outPort, \
         int b, int k, bool encode)
-    :sender_(sender), outPort_(outPort), b(b), k(k), id(0), encode(encode) {
+    :sender_(sender), outPort_(outPort), b(b), k(k), id(0), encode(encode), \
+         nextToSend(0), lastToSend(0), receivedPackets(false) {
     udpSocket = new QUdpSocket(this);
     udpSocket->bind(listenAddr, listenPort);
 
     connect(udpSocket, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
 
     chunks.resize(10000);
+    packetBuffer.resize(10000);
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(processTimer()));
 }
 
 /*inline QByteArray wrapPacket(PacketID pid, QByteArray datagram)
@@ -42,6 +48,7 @@ inline QByteArray dewrap(QByteArray datagram)
 void FecUdpRelay::processPendingDatagrams()
 {
     QTextStream cout(stdout);
+    timer->start(1000);
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket->pendingDatagramSize());
@@ -61,6 +68,7 @@ void FecUdpRelay::processPendingDatagrams()
         
         QByteArray wrappedPacket = wrapPacket(id, datagram);
         udpSocket->writeDatagram(wrappedPacket, sender_, outPort_);
+        //qDebug() << "sent packet "<<id;
         id++;
 
         if (chunks[cid]->FECReady()) {
@@ -107,15 +115,70 @@ void FecUdpRelay::processPendingDatagrams()
                 //delete chunks[cid];
                 //chunks[cid] = 0;
             } else {
-                udpSocket->writeDatagram(dewrapped, sender_, outPort_);
+                //packetBuffer[pid] = dewrapped;
+                insertPacket(pid, dewrapped);
+                if (pid >= b * k) {
+                    sendUntil(pid - b * k);
+                }
+                //udpSocket->writeDatagram(dewrapped, sender_, outPort_);
             }
           }
           
           if (chunks[cid]->recoverReady()) {
               QByteArray recoveredPacket = chunks[cid]->packet();
-              qDebug() << "recovered 1 packet in chunk " << cid << endl;
-              udpSocket->writeDatagram(recoveredPacket, sender_, outPort_);
+              PacketID rpid = chunks[cid]->recoverdID();
+              qDebug() << "recovered packet "<< rpid << " in chunk " << cid << endl;
+              //packetBuffer[rpid] = recoveredPacket;
+              insertPacket(rpid, recoveredPacket);
+              //if (rpid >= b * k) {
+              //    sendUntil(rpid - );
+              //}
+              //udpSocket->writeDatagram(recoveredPacket, sender_, outPort_);
           }
       }
     }
 }
+
+void
+FecUdpRelay::insertPacket(PacketID pid, QByteArray packet) {
+    while (pid >= packetBuffer.size()) {
+        packetBuffer.resize(2 * packetBuffer.size());
+    }
+    packetBuffer[pid] = packet;
+    if (pid > lastToSend) {
+        lastToSend = pid;
+    }
+}
+
+void
+FecUdpRelay::sendUntil(PacketID pid) {
+    //qDebug() << "send until " << pid << endl;
+    if (pid > lastToSend) {
+        pid = lastToSend;
+    }
+    for (int i = nextToSend; i <=pid; i++) {
+        if (packetBuffer[i].size() > 0) {
+            udpSocket->writeDatagram(packetBuffer[i], sender_, outPort_);
+            packetBuffer[i].clear();
+            //qDebug() << "sent packet" << i;
+            usleep(100);
+        } else {
+            qDebug() << "packet " << i << " is lost." << endl;
+        }
+    }
+    nextToSend = pid+1;
+}
+
+void
+FecUdpRelay::processTimer() {
+        if (!encode) {
+            sendUntil(lastToSend);
+            qDebug() << "decoder quit.\n";
+        } else {
+            qDebug() << "encoder quit\n";
+        }
+        exit(0);
+}
+
+
+

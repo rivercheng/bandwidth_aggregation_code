@@ -7,6 +7,7 @@ TARGET =
 DEPENDPATH += .
 INCLUDEPATH += .
 QT += network
+CONFIG += qt debug
 
 # Input
 HEADERS += chunk.hh udpRelay.hh

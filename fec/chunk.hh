@@ -106,6 +106,17 @@ public:
             throw NotReady();
         }
     }
+
+    PacketID recoverdID (void) {
+        if ((expectedIds.size() == 1) && includedFEC)
+        {
+            return *(expectedIds.begin());
+        }
+        else
+        {
+            throw NotReady();
+        }
+    }
 };
 
 #endif

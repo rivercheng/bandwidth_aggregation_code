@@ -5,6 +5,7 @@
 #include <QHostAddress>
 #include "chunk.hh"
 
+class QTimer;
 inline QByteArray wrapPacket(PacketID pid, QByteArray datagram)
 {
     QByteArray header;
@@ -36,6 +37,10 @@ public:
     FecUdpRelay(QHostAddress listenAddr, quint16 listenPort, QHostAddress sender, quint16 outPort, int b, int k, bool encode);
 private slots:
     void processPendingDatagrams();
+    void processTimer();
+private:
+    void sendUntil(PacketID pid);
+    void insertPacket(PacketID pid, QByteArray packet);
 private:
     QUdpSocket *udpSocket;
     QHostAddress sender_;
@@ -45,5 +50,10 @@ private:
     PacketID id;
     QVector<FECChunk*> chunks;
     bool encode;
+    QVector<QByteArray> packetBuffer;
+    int nextToSend;
+    int lastToSend;
+    QTimer *timer;
+    bool receivedPackets;
 };
 #endif

@@ -10,7 +10,7 @@ QTextStream cout(stdout, QIODevice::WriteOnly);
 QTextStream cerr(stderr, QIODevice::WriteOnly);
 
 void usage(QStringList args) {
-    cerr << "Usage: " << args[0] << " <filename> " << endl;
+    cerr << "Usage: " << args[0] << " <filename> [inPort] [outPort]" << endl;
 }
 
 PacketInfo processLine(QString line) {
@@ -40,11 +40,25 @@ PacketInfo processLine(QString line) {
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
     QStringList args = app.arguments();
-    if (args.size() != 2) {
+    if (args.size() < 2) {
         usage(args);
         return 1;
     }
     QFile file(args[1]);
+    quint16 inPort = 10000;
+    quint16 outPort = 12000;
+    bool ok1, ok2;
+    if (args.size() > 2) {
+        inPort = args[2].toInt(&ok1);
+    }
+    if (args.size() > 3) {
+        outPort = args[3].toInt(&ok2);
+    }
+    if (!ok1 || !ok2) {
+        usage(args);
+        return 1;
+    }
+
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
         cerr << "Cannot open file " << args[1] << endl;
@@ -60,7 +74,10 @@ int main(int argc, char *argv[]) {
     }
 
     QHostAddress addr=QHostAddress::LocalHost;
-    UdpRelay relay(10000, addr, 10020, infos);
+    if (args.size() > 4) {
+        addr = QHostAddress(args[4]);
+    }
+    UdpRelay relay(inPort, addr, outPort, infos);
     app.exec();
 
     return 0;

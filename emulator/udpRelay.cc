@@ -1,5 +1,7 @@
 #include <QUdpSocket>
 #include <QTextStream>
+#include <cstdlib>
+#include <QTimer>
 #include "udpRelay.hh"
 UdpRelay::UdpRelay(quint16 listenPort, QHostAddress sender, quint16 outPort, \
                    QVector<PacketInfo> infos)
@@ -8,11 +10,14 @@ UdpRelay::UdpRelay(quint16 listenPort, QHostAddress sender, quint16 outPort, \
     udpSocket->bind(listenPort);
 
     connect(udpSocket, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
+    timer = new QTimer();
+    connect(timer, SIGNAL(timeout()), this, SLOT(processTimer()));
 }
 
 void UdpRelay::processPendingDatagrams()
 {
     QTextStream cout(stdout);
+    timer->start(1000);
     while (udpSocket->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket->pendingDatagramSize());
@@ -35,6 +40,11 @@ void UdpRelay::processPendingDatagrams()
         //}
         udpSocket->writeDatagram(datagram, sender_, outPort_);
     }
+}
+
+void UdpRelay::processTimer() {
+    sleep(1);
+    exit(0);
 }
 
 
