@@ -2,6 +2,7 @@
 #include <QObject>
 #include "../chunk.hh"
 #include "../udpRelay.hh"
+#include "../gettime.hh"
 
 class TestChunk : public QObject {
     Q_OBJECT
@@ -16,6 +17,8 @@ private slots:
     void wrapDewrap();
     void testFECpacket();
     void testFECdecode();
+    void testSendTime();
+    void testSendTime2();
 };
 
 void TestChunk::pid2cid_data()
@@ -95,8 +98,10 @@ void TestChunk::testwrapPacket() {
     QByteArray arr2 = wrapPacket(101, arr1);
     QDataStream data(arr2);
     int id;
+    unsigned int sec;
+    unsigned int usec;
     quint16 len;
-    data >>  id  >> len;
+    data >>  id  >> sec >> usec >> len;
     QCOMPARE(id, 101);
     QCOMPARE(len, (unsigned short)10);
 }
@@ -107,7 +112,9 @@ void TestChunk::testwrapFECPacket() {
     QDataStream data(arr2);
     int id;
     quint16 len;
-    data >>  id  >> len;
+    unsigned int sec;
+    unsigned int usec;
+    data >>  id >>sec >> usec  >> len;
     QCOMPARE(id, -102);
     QCOMPARE(len, (unsigned short)10);
 }
@@ -139,6 +146,25 @@ void TestChunk::testFECdecode() {
     QVERIFY(chunk.recoverReady());
     QCOMPARE(chunk.packet(), arr2); 
 }
+
+void TestChunk::testSendTime() {
+    PreciseTime firstSentTime(111, 112222);
+    PreciseTime sentTime(111, 113222);
+    PreciseTime initialTime = PreciseTime(0, 0);
+    QCOMPARE(decideSendingTime(initialTime, 100, firstSentTime, sentTime), 
+            PreciseTime(0, 101000));
+}
+
+void TestChunk::testSendTime2() {
+    PreciseTime firstSentTime(111, 112222);
+    PreciseTime sentTime(112, 222);
+    PreciseTime initialTime = PreciseTime(10, 10000);
+    QCOMPARE(decideSendingTime(initialTime, 100, firstSentTime, sentTime).sec, 
+            PreciseTime(10, 998000).sec);
+    QCOMPARE(decideSendingTime(initialTime, 100, firstSentTime, sentTime).usec, 
+            PreciseTime(10, 998000).usec);
+}
+    
 
 
 

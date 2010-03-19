@@ -13,7 +13,7 @@ QTextStream cout(stdout, QIODevice::WriteOnly);
 QTextStream cerr(stderr, QIODevice::WriteOnly);
 
 void usage(QStringList args) {
-    cerr << "Usage: " << args[0] << "<e|d> <b> <k> [addr] [listenPort] [RelayPort] [RelayAddr] " << endl;
+    cerr << "Usage: " << args[0] << " <e|d> <b> <k> [delay = 500] [addr] [listenPort] [RelayPort] [RelayAddr] " << endl;
     cerr << "\t'e': encoder, 'd': decoder." << endl;
     cerr << "\tb: the width of FEC block, k: the height of FEC block. Both are integer." << endl;
 }
@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
     quint16      listenPort = 10000;
     QHostAddress relayAddr = QHostAddress::LocalHost;
     quint16      relayPort = 0;
+    unsigned int delay = 500;
     bool         isEncoder = true;
 
     if (args.size() < 4) {
@@ -50,40 +51,49 @@ int main(int argc, char *argv[]) {
     }
 
     if (args.size() > 4) {
-        listenAddr = QHostAddress(args[4]);
-        if (listenAddr.isNull()) {
-            cerr << "Not a valid address: " << args[4] << endl;
-            return 1;
-        }
-    }
-    
-    if (args.size() > 5) {
-        bool ok;
-        listenPort = args[5].toInt(&ok);
+        bool ok = false;
+        delay = args[4].toInt(&ok);
         if (!ok) {
-            usage(args);
+            cerr << "Not a valid delay: " << args[4] << endl;
             return 1;
         }
     }
 
+    if (args.size() > 5) {
+        listenAddr = QHostAddress(args[5]);
+        if (listenAddr.isNull()) {
+            cerr << "Not a valid address: " << args[5] << endl;
+            return 1;
+        }
+    }
+    
     if (args.size() > 6) {
         bool ok;
-        relayPort = args[6].toInt(&ok);
+        listenPort = args[6].toInt(&ok);
         if (!ok) {
-            usage(args);
+            cerr << "not a valid port: " << args[6] << endl;
             return 1;
         }
     }
 
     if (args.size() > 7) {
-        relayAddr = QHostAddress(args[7]);
-        if (relayAddr.isNull()) {
-            cerr << "Not a valid address: " << args[7] << endl;
+        bool ok;
+        relayPort = args[7].toInt(&ok);
+        if (!ok) {
+            cerr << "not a valid port: " << args[7] << endl;
             return 1;
         }
     }
 
-    FecUdpRelay relay(listenAddr, listenPort, relayAddr, relayPort, b, k, isEncoder);
+    if (args.size() > 8) {
+        relayAddr = QHostAddress(args[8]);
+        if (relayAddr.isNull()) {
+            cerr << "Not a valid address: " << args[8] << endl;
+            return 1;
+        }
+    }
+
+    FecUdpRelay relay(listenAddr, listenPort, relayAddr, relayPort, b, k, delay, isEncoder);
     app.exec();
 }
 
