@@ -9,7 +9,7 @@ output*
 *.log
 log*
 udp_relay/
-test
+test/test
 fec
 recorder
 record?
@@ -17,4 +17,6 @@ emulator
 listAddresses/listAddresses
 splitter/splitter
 setRoute/setRoute
+sender/sender
+receiver/receiver
 

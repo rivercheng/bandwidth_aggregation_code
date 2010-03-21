@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QList>
 #include <QHostAddress>
+#include <QStringList>
 
 class QUdpSocket;
 class QTimer;
@@ -22,6 +23,7 @@ private:
     QUdpSocket *udpSocket;
     
     QList< QUdpSocket* > outSockets;
+    QStringList  addresses;
     int index;
     
     QHostAddress sender_;
