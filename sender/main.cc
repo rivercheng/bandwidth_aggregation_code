@@ -12,7 +12,7 @@ QTextStream cout(stdout, QIODevice::WriteOnly);
 QTextStream cerr(stderr, QIODevice::WriteOnly);
 
 void usage(QStringList args) {
-    cerr << "Usage: " << args[0] << " <inPort> <outPort> <outAddr>" << endl;
+    cerr << "Usage: " << args[0] << " <inPort> <outPort> <outAddr> <b1> <k1> <b2> <k2>" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     //Parse the command line arguments
     QStringList args = app.arguments();
-    if (args.size() < 4) {
+    if (args.size() < 8) {
         usage(args);
         return 1;
     }
@@ -42,6 +42,18 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    int b1, k1, b2, k2;
+    bool ok3, ok4;
+    b1 = args[4].toInt(&ok1);
+    k1 = args[5].toInt(&ok2);
+    b2 = args[6].toInt(&ok3);
+    k2 = args[7].toInt(&ok4);
+    if (!ok1 || !ok2 || !ok3 || !ok4) {
+        usage(args);
+        cerr << "enter the correct b, k values" << endl;
+        return 1;
+    }
+
     //find out all the valid IP addresses in this computer.
     //Only one IP address is used for one interface.
     QList<QHostAddress> addrs = ListAddr::validIPv4Addrs();
@@ -56,7 +68,7 @@ int main(int argc, char *argv[]) {
             return(1);
         }
         qDebug() << addr.toString() <<" is used";
-        UdpEncoder *encoder = new UdpEncoder(sock, outAddr, outPort, 8, 0);
+        UdpEncoder *encoder = new UdpEncoder(sock, outAddr, outPort, b2, k2);
         encoders.append(encoder);
         tuples.append(UdpSplitter::Tuple(QHostAddress::LocalHost, 0, \
                     addr, sock->localPort()));
@@ -76,7 +88,7 @@ int main(int argc, char *argv[]) {
         return(1);
     }
 
-    UdpEncoder encoder(inSock, QHostAddress::LocalHost, p, 8, 10);
+    UdpEncoder encoder(inSock, QHostAddress::LocalHost, p, b1, k1);
     
     app.exec();
     return 0;

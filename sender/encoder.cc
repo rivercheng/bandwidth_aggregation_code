@@ -41,7 +41,7 @@ UdpEncoder::UdpEncoder(QUdpSocket *socket, \
     }
 
     reset_timer = new QTimer();
-    connect(timer, SIGNAL(timeout()), this, SLOT(reset()));
+    connect(reset_timer, SIGNAL(timeout()), this, SLOT(reset()));
     reset_timer->start(2000);
 }
 
