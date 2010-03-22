@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
         return(1);
     }
 
-    UdpEncoder encoder(inSock, QHostAddress::LocalHost, p, 8, 0);
+    UdpEncoder encoder(inSock, QHostAddress::LocalHost, p, 8, 10);
     
     app.exec();
     return 0;

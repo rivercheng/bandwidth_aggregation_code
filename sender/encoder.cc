@@ -39,12 +39,25 @@ UdpEncoder::UdpEncoder(QUdpSocket *socket, \
         connect(timer, SIGNAL(timeout()), this, SLOT(processTimer()));
         timer->start(1000);
     }
+
+    reset_timer = new QTimer();
+    connect(timer, SIGNAL(timeout()), this, SLOT(reset()));
+    reset_timer->start(2000);
 }
 
+void UdpEncoder::reset() {
+    id_ = 0;
+    for (int i=0; i < chunks_.size(); i++)
+    {
+        delete chunks_[i];
+        chunks_[i] = 0;
+    }
+}
 
 void UdpEncoder::processPendingDatagrams()
 {
     if (timer != 0) timer->start(1000);
+    reset_timer->start(2000);
     QTextStream cout(stdout);
     while (udpSocket_->hasPendingDatagrams()) {
         QByteArray datagram;

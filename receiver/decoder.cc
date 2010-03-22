@@ -7,22 +7,44 @@
 UdpDecoder::UdpDecoder(QUdpSocket *socket, QHostAddress outAddr, quint16 outPort, \
         int b, int k, unsigned int delay)
     :udpSocket_(socket), outAddr_(outAddr), outPort_(outPort), \
-         b_(b), k_(k), id_(0), \
+         b_(b), k_(k), \
          nextIDToSend_(0), lastIDToSend_(0), \
          initialTime_(0,0), firstSentTime_(0,0), \
-         firstToSendTime_(0,0), delay_(delay) {
+         firstToSendTime_(0,0), delay_(delay), timer_(0) {
 
     connect(udpSocket_, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
     
     chunks_.resize(10000);
     packetBuffer_.resize(10000);
     connect(this, SIGNAL(send()), this, SLOT(sendPacket()));
+
+    timer_ = new QTimer();
+    connect(timer_, SIGNAL(timeout()), this, SLOT(reset()));
+    timer_->start(2000);
+
 }
 
+void UdpDecoder::reset() {
+    for (int i = 0; i < chunks_.size(); i++) {
+        delete chunks_[i];
+        chunks_[i] = 0;
+    }
+    packetBuffer_.clear();
+    packetBuffer_.resize(10000);
+    nextIDToSend_ = 0;
+    lastIDToSend_ = 0;
+    initialTime_.sec = 0;
+    initialTime_.usec = 0;
+    firstSentTime_.sec = 0;
+    firstSentTime_.usec = 0;
+    firstToSendTime_.sec = 0;
+    firstToSendTime_.usec = 0;
+}
 
 void UdpDecoder::processPendingDatagrams()
 {
     QTextStream cout(stdout);
+    timer_->start(2000);
     while (udpSocket_->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket_->pendingDatagramSize());

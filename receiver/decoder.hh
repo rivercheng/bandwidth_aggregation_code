@@ -7,24 +7,8 @@
 #include "gettime.hh"
 #include "header.hh"
 
-inline PreciseTime decideSendingTime(PreciseTime initialTime, unsigned int delay, \
-        PreciseTime firstSentTime, PreciseTime sentTime) {
-    unsigned int sec;
-    int msec;
-    sec = sentTime.sec - firstSentTime.sec + initialTime.sec;
-    msec = int(initialTime.usec/1000) + int(sentTime.usec/1000) - int(firstSentTime.usec/1000) + delay;
-    while (msec < 0) {
-        sec --;
-        msec += 1000;
-    }
-    while (msec > 1000) {
-        sec ++;
-        msec -= 1000;
-    }
-    return PreciseTime(sec, msec*1000);
-}
-
 class QUdpSocket;
+class QTimer;
 class UdpDecoder : public QObject {
     Q_OBJECT
 public:
@@ -33,6 +17,7 @@ public:
 private slots:
     void processPendingDatagrams();
     void sendPacket();
+    void reset();
 signals:
     void send();
 private:
@@ -51,7 +36,6 @@ private:
     quint16      outPort_;
     int b_;
     int k_;
-    PacketID id_;
     QVector<FECChunk*> chunks_;
     QVector<PacketToSend> packetBuffer_;
     int nextIDToSend_;
@@ -60,5 +44,6 @@ private:
     PreciseTime firstSentTime_;
     PreciseTime firstToSendTime_;
     unsigned int delay_;
+    QTimer *timer_;
 };
 #endif

@@ -16,6 +16,7 @@ public:
 private slots:
     void processPendingDatagrams();
     void processTimer();
+    void reset();
 private:
     struct PacketToSend {
         QByteArray packet;
@@ -32,7 +33,7 @@ private:
     int k_;
     PacketID id_;
     QVector<FECChunk*> chunks_;
-    QVector<PacketToSend> packetBuffer_;
     QTimer *timer;
+    QTimer *reset_timer;
 };
 #endif
