@@ -37,7 +37,7 @@ void UdpDecoder::processPendingDatagrams()
           QDataStream data(datagram);
           data >> pid >> sec >> usec >> len;
           PreciseTime sentTime(sec, usec);
-          qDebug() << "received " << pid << " at " << sec << " " << usec;
+          qDebug() << udpSocket_->localPort() << " received " << pid << " at " << sec << " " << usec;
 
           
           if (pid < 0) { //FEC packet
@@ -87,7 +87,7 @@ void UdpDecoder::processPendingDatagrams()
           if (chunks_[cid]->recoverReady()) {
               QByteArray recoveredPacket = chunks_[cid]->packet();
               PacketID rpid = chunks_[cid]->recoverdID();
-              qDebug() << "recovered packet "<< rpid << " in chunk " << cid << endl;
+              qDebug() << udpSocket_->localPort() << " recovered packet "<< rpid << " in chunk " << cid << endl;
               
               //Since we cannot know the exact sent time of the recovered packets.
               //Recovered Packets are assumed to be sent immediatelly after their previous packets.
@@ -98,7 +98,7 @@ void UdpDecoder::processPendingDatagrams()
 
 void
 UdpDecoder::insertPacket(PacketID pid, QByteArray packet, PreciseTime sendTime) {
-    qDebug() << "insert " << pid << "to send at " << sendTime.sec << " " << sendTime.usec;
+    qDebug() << udpSocket_->localPort() << " insert " << pid << "to send at " << sendTime.sec << " " << sendTime.usec;
     while (pid >= packetBuffer_.size()) {
         packetBuffer_.resize(2 * packetBuffer_.size());
     }
@@ -116,7 +116,7 @@ UdpDecoder::insertPacket(PacketID pid, QByteArray packet, PreciseTime sendTime) 
 
 void 
 UdpDecoder::sendPacket() {
-    qDebug() << "in send";
+    qDebug() << udpSocket_->localPort() << "in send";
     qDebug() << "next " << nextIDToSend_ << " last " << lastIDToSend_;
     PreciseTime currTime = PreciseTime::getTime();
     qDebug() << "currTime " << currTime.sec << " " << currTime.usec;

@@ -24,10 +24,12 @@ void UdpListener::processPendingDatagrams()
         QHostAddress inAddr;
         quint16      inPort;
         udpSocket_->readDatagram(datagram.data(), datagram.size(), &inAddr, &inPort);
+        qDebug() << "received packet from " << inAddr.toString();
 
         if (decoderPortHashTable_.contains(inAddr)) {
             quint16 port = decoderPortHashTable_[inAddr];
             udpSocket_->writeDatagram(datagram, QHostAddress::LocalHost, port);
+            qDebug() << "dispatched to " << port;
         } else {
             QUdpSocket *socket = new QUdpSocket();
             socket->bind(QHostAddress(QHostAddress::LocalHost), 0);
@@ -36,6 +38,7 @@ void UdpListener::processPendingDatagrams()
             decoderPortHashTable_[inAddr] = port;
             decoders_.append(decoder);
             udpSocket_->writeDatagram(datagram, QHostAddress::LocalHost, port);
+            qDebug() << "created and dispatched to " << port;
         }
     }
 }

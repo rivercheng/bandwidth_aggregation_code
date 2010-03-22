@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
             return(1);
         }
         qDebug() << addr.toString() <<" is used";
-        UdpEncoder *encoder = new UdpEncoder(sock, outAddr, outPort, 8, 10);
+        UdpEncoder *encoder = new UdpEncoder(sock, outAddr, outPort, 8, 0);
         encoders.append(encoder);
         tuples.append(UdpSplitter::Tuple(QHostAddress::LocalHost, 0, \
                     addr, sock->localPort()));
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
         return(1);
     }
 
-    UdpEncoder encoder(inSock, QHostAddress::LocalHost, p, 8, 10);
+    UdpEncoder encoder(inSock, QHostAddress::LocalHost, p, 8, 0);
     
     app.exec();
     return 0;

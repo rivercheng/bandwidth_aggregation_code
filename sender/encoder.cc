@@ -50,6 +50,12 @@ void UdpEncoder::processPendingDatagrams()
         QByteArray datagram;
         datagram.resize(udpSocket_->pendingDatagramSize());
         udpSocket_->readDatagram(datagram.data(), datagram.size());
+        if (b_ * k_ == 0) { 
+            //no fec
+            udpSocket_->writeDatagram(wrapPacket(id_, datagram), outAddr_, outPort_);
+            id_++;
+            continue;
+        }
 
         ChunkID cid = FECChunk::packetID2chunkID(id_, b_, k_);
         while (cid >= chunks_.size())
