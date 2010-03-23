@@ -45,5 +45,6 @@ private:
     PreciseTime firstToSendTime_;
     unsigned int delay_;
     QTimer *timer_;
+    bool   allSent_;
 };
 #endif

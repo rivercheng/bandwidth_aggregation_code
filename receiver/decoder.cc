@@ -10,7 +10,7 @@ UdpDecoder::UdpDecoder(QUdpSocket *socket, QHostAddress outAddr, quint16 outPort
          b_(b), k_(k), \
          nextIDToSend_(0), lastIDToSend_(0), \
          initialTime_(0,0), firstSentTime_(0,0), \
-         firstToSendTime_(0,0), delay_(delay), timer_(0) {
+         firstToSendTime_(0,0), delay_(delay), timer_(0), allSent_(true) {
 
     connect(udpSocket_, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
     
@@ -39,6 +39,7 @@ void UdpDecoder::reset() {
     firstSentTime_.usec = 0;
     firstToSendTime_.sec = 0;
     firstToSendTime_.usec = 0;
+    qDebug() << "reset";
 }
 
 void UdpDecoder::processPendingDatagrams()
@@ -59,7 +60,7 @@ void UdpDecoder::processPendingDatagrams()
           QDataStream data(datagram);
           data >> pid >> sec >> usec >> len;
           PreciseTime sentTime(sec, usec);
-          qDebug() << udpSocket_->localPort() << " received " << pid << " at " << sec << " " << usec;
+          //qDebug() << udpSocket_->localPort() << " received " << pid << " at " << sec << " " << usec;
 
           
           if (pid < 0) { //FEC packet
@@ -120,28 +121,31 @@ void UdpDecoder::processPendingDatagrams()
 
 void
 UdpDecoder::insertPacket(PacketID pid, QByteArray packet, PreciseTime sendTime) {
-    qDebug() << udpSocket_->localPort() << " insert " << pid << "to send at " << sendTime.sec << " " << sendTime.usec;
+    //qDebug() << udpSocket_->localPort() << " insert " << pid << "to send at " << sendTime.sec << " " << sendTime.usec;
     while (pid >= packetBuffer_.size()) {
         packetBuffer_.resize(2 * packetBuffer_.size());
+    }
+    if (pid > lastIDToSend_) {
+        lastIDToSend_ = pid;
     }
     packetBuffer_[pid] = PacketToSend(packet, sendTime);
     if (pid <= nextIDToSend_) {
         nextIDToSend_ = pid;
         firstToSendTime_ = sendTime;
-        qDebug() << "emit send";
-        emit send();
+        //qDebug() << "emit send";
     }
-    if (pid > lastIDToSend_) {
-        lastIDToSend_ = pid;
+    if (allSent_) {
+        allSent_ = false;
+        emit send();
     }
 }
 
 void 
 UdpDecoder::sendPacket() {
-    qDebug() << udpSocket_->localPort() << "in send";
-    qDebug() << "next " << nextIDToSend_ << " last " << lastIDToSend_;
+    //qDebug() << udpSocket_->localPort() << "in send";
+    //qDebug() << "next " << nextIDToSend_ << " last " << lastIDToSend_;
     PreciseTime currTime = PreciseTime::getTime();
-    qDebug() << "currTime " << currTime.sec << " " << currTime.usec;
+    //qDebug() << "currTime " << currTime.sec << " " << currTime.usec;
     PreciseTime threshold = currTime + PreciseTime(0, 1000);
         
     while (nextIDToSend_ <= lastIDToSend_ && \
@@ -150,10 +154,12 @@ UdpDecoder::sendPacket() {
             if (!packetBuffer_[nextIDToSend_].packet.isEmpty()) {
                 udpSocket_->writeDatagram(packetBuffer_[nextIDToSend_].packet, outAddr_, outPort_);
                 packetBuffer_[nextIDToSend_].packet.clear();
-                qDebug() << "sent " << nextIDToSend_;
+                //qDebug() << udpSocket_->localPort() << " sent " << nextIDToSend_;
                 usleep(100); //avoid bursty.
             }
             nextIDToSend_++;
+            currTime = PreciseTime::getTime();
+            threshold = currTime + PreciseTime(0, 1000);
         }
         if (nextIDToSend_ <= lastIDToSend_) {
             PreciseTime nextSendTime = packetBuffer_[nextIDToSend_].sendTime;
@@ -162,12 +168,14 @@ UdpDecoder::sendPacket() {
             //qDebug() << "currTime " << currTime.sec << " " << currTime.usec;
             PreciseTime waittingTime = nextSendTime - currTime;
             int waittingTime_ms = waittingTime.sec * 1000 + waittingTime.usec / 1000;
-            //qDebug() << "waittingTime " << waittingTime;
+            //qDebug() << "waittingTime " << waittingTime_ms;
             if (waittingTime_ms < 0) {
                 waittingTime_ms = 0;
             }
             QTimer::singleShot(waittingTime_ms, this, SLOT(sendPacket()));
-    }
+        } else {
+            allSent_ = true;
+        }
 }
 
 
