@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QStringList>
 #include <QProcess>
+#include <QFile>
 #include "encoder.hh"
 #include "header.hh"
 
@@ -23,8 +24,9 @@ static bool runCommand(QString command, QStringList arguments) {
 }
 
 UdpEncoder::UdpEncoder(QUdpSocket *socket, \
-        QHostAddress outAddr, quint16 outPort, int b, int k)
-    :udpSocket_(socket), outAddr_(outAddr), outPort_(outPort), b_(b), k_(k), id_(0), timer(0) 
+        QHostAddress outAddr, quint16 outPort, int b, int k, QFile *f)
+    :udpSocket_(socket), outAddr_(outAddr), outPort_(outPort), \
+         b_(b), k_(k), records_(f), id_(0), timer(0)
 {
     chunks_.resize(10000);
     connect(udpSocket_, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
@@ -66,6 +68,9 @@ void UdpEncoder::processPendingDatagrams()
         if (b_ * k_ == 0) { 
             //no fec
             udpSocket_->writeDatagram(wrapPacket(id_, datagram), outAddr_, outPort_);
+            if (records_ != 0) {
+                recording(id_);
+            }
             id_++;
             continue;
         }
@@ -83,16 +88,36 @@ void UdpEncoder::processPendingDatagrams()
         
         QByteArray wrappedPacket = wrapPacket(id_, datagram);
         udpSocket_->writeDatagram(wrappedPacket, outAddr_, outPort_);
+        if (records_ != 0 ) {
+            recording(id_);
+        }
         qDebug() << "send packet " << id_;
         id_++;
 
         if (chunks_[cid]->FECReady()) {
             QByteArray fecPacket = chunks_[cid]->packet();
             udpSocket_->writeDatagram(wrapFecPacket(cid, fecPacket), outAddr_, outPort_);
+            if (records_ != 0) {
+                recordingFEC(cid);
+            }
             delete chunks_[cid];
             chunks_[cid] = 0;
         }
     }
+}
+
+void UdpEncoder::recording(PacketID id) {
+    QTextStream ts(records_);
+    PreciseTime currTime = PreciseTime::getTime();
+    ts <<  currTime.sec << " " << currTime.usec << " " << udpSocket_->localPort() << " " << id << "\n";
+    return;
+}
+
+void UdpEncoder::recordingFEC(ChunkID cid) {
+    QTextStream ts(records_);
+    PreciseTime currTime = PreciseTime::getTime();
+    ts <<  currTime.sec << " " << currTime.usec << " " << udpSocket_->localPort() << " fec " << cid << "\n";
+    return;
 }
 
 void UdpEncoder::processTimer() {

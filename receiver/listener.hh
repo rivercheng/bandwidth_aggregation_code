@@ -7,11 +7,12 @@
 
 class QUdpSocket;
 class UdpDecoder;
+class QFile;
 class UdpListener : public QObject {
     Q_OBJECT
 public:
     UdpListener(QUdpSocket *socket, QHostAddress outAddr, \
-            quint16 outPort, int b, int k, unsigned int delay);
+            quint16 outPort, int b, int k, unsigned int delay, QFile *f=0);
 private slots:
     void processPendingDatagrams();
     
@@ -22,6 +23,7 @@ private:
     int b_;
     int k_;
     unsigned int delay_;
+    QFile *records_;
     QList<UdpDecoder *> decoders_;
     QHash<QHostAddress, quint16> decoderPortHashTable_;
 };

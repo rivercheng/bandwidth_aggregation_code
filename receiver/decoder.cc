@@ -2,12 +2,12 @@
 #include <QTextStream>
 #include <QDebug>
 #include <QTimer>
-#include <cstdlib>
+#include <QFile>
 #include "decoder.hh"
 UdpDecoder::UdpDecoder(QUdpSocket *socket, QHostAddress outAddr, quint16 outPort, \
-        int b, int k, unsigned int delay)
+        int b, int k, unsigned int delay, QFile *f)
     :udpSocket_(socket), outAddr_(outAddr), outPort_(outPort), \
-         b_(b), k_(k), \
+         b_(b), k_(k), records_(f), \
          nextIDToSend_(0), lastIDToSend_(0), \
          initialTime_(0,0), firstSentTime_(0,0), \
          firstToSendTime_(0,0), delay_(delay), timer_(0), allSent_(true) {
@@ -42,6 +42,13 @@ void UdpDecoder::reset() {
     qDebug() << "reset";
 }
 
+void UdpDecoder::recording(PacketID id, int sec, int usec) {
+    QTextStream ts(records_);
+    PreciseTime currTime = PreciseTime::getTime();
+    ts <<  currTime.sec << " " << currTime.usec << " " << udpSocket_->localPort()<< " " << id << " " << sec << " " << usec << "\n";
+    return;
+}
+
 void UdpDecoder::processPendingDatagrams()
 {
     QTextStream cout(stdout);
@@ -60,8 +67,10 @@ void UdpDecoder::processPendingDatagrams()
           QDataStream data(datagram);
           data >> pid >> sec >> usec >> len;
           PreciseTime sentTime(sec, usec);
+          if (records_ != 0) {
+              recording(pid, sec, usec);
+          }
           //qDebug() << udpSocket_->localPort() << " received " << pid << " at " << sec << " " << usec;
-
           
           if (pid < 0) { //FEC packet
             cid = -pid - 1;

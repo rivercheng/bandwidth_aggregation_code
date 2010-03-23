@@ -7,9 +7,9 @@
 #include "decoder.hh"
 
 UdpListener::UdpListener(QUdpSocket *socket, QHostAddress outAddr, quint16 outPort, \
-        int b, int k, unsigned int delay)
+        int b, int k, unsigned int delay, QFile *f)
     :udpSocket_(socket), outAddr_(outAddr), outPort_(outPort), \
-         b_(b), k_(k), delay_(delay) {
+         b_(b), k_(k), delay_(delay), records_(f) {
 
     connect(udpSocket_, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
 }
@@ -33,7 +33,7 @@ void UdpListener::processPendingDatagrams()
         } else {
             QUdpSocket *socket = new QUdpSocket();
             socket->bind(QHostAddress(QHostAddress::LocalHost), 0);
-            UdpDecoder *decoder = new UdpDecoder(socket, outAddr_, outPort_, b_, k_, delay_);
+            UdpDecoder *decoder = new UdpDecoder(socket, outAddr_, outPort_, b_, k_, delay_, records_);
             quint16 port = socket->localPort();
             decoderPortHashTable_[inAddr] = port;
             decoders_.append(decoder);

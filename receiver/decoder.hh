@@ -9,11 +9,12 @@
 
 class QUdpSocket;
 class QTimer;
+class QFile;
 class UdpDecoder : public QObject {
     Q_OBJECT
 public:
     UdpDecoder(QUdpSocket *socket, QHostAddress outAddr, \
-            quint16 outPort, int b, int k, unsigned int delay);
+           quint16 outPort, int b, int k, unsigned int delay, QFile *f=0);
 private slots:
     void processPendingDatagrams();
     void sendPacket();
@@ -22,6 +23,7 @@ signals:
     void send();
 private:
     void insertPacket(PacketID pid, QByteArray packet, PreciseTime toSendTime);
+    void recording(PacketID id, int sec, int usec);
 private:
     struct PacketToSend {
         QByteArray packet;
@@ -36,6 +38,7 @@ private:
     quint16      outPort_;
     int b_;
     int k_;
+    QFile *records_;
     QVector<FECChunk*> chunks_;
     QVector<PacketToSend> packetBuffer_;
     int nextIDToSend_;

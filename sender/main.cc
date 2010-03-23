@@ -4,6 +4,7 @@
 #include <QTextStream>
 #include <QCoreApplication>
 #include <QUdpSocket>
+#include <QDateTime>
 #include "encoder.hh"
 #include "splitter.hh"
 #include "listAddr.hh"
@@ -61,14 +62,24 @@ int main(int argc, char *argv[]) {
     QList<UdpEncoder *> encoders;
     QList<UdpSplitter::Tuple> tuples;
     
+    QString filename;
+    QTextStream fs(&filename);
+    fs << "outgoing_record_" << QDateTime::currentDateTime().toString("yy:MM:dd:hh:mm:ss");
+    
+    QFile rf(filename);
+    if (! rf.open(QIODevice::WriteOnly)) {
+        cerr << "cannot open file " << filename << endl;
+        return 1;
+    }
+    
     foreach(QHostAddress addr, addrs) {
         QUdpSocket *sock = new QUdpSocket();
         if (!sock->bind(addr, 0)) {
             cerr << "bind error" << endl;
-            return(1);
+            return 1;
         }
         qDebug() << addr.toString() <<" is used";
-        UdpEncoder *encoder = new UdpEncoder(sock, outAddr, outPort, b2, k2);
+        UdpEncoder *encoder = new UdpEncoder(sock, outAddr, outPort, b2, k2, &rf);
         encoders.append(encoder);
         tuples.append(UdpSplitter::Tuple(QHostAddress::LocalHost, 0, \
                     addr, sock->localPort()));
@@ -77,7 +88,7 @@ int main(int argc, char *argv[]) {
     QUdpSocket *sock = new QUdpSocket();
     if (!sock->bind(QHostAddress(QHostAddress::LocalHost), quint16(0))) {
         cerr << "bind error" << endl;
-        return(1);
+        return 1;
     }
     quint16 p = sock->localPort();
     UdpSplitter splitter(sock, tuples);
@@ -85,8 +96,9 @@ int main(int argc, char *argv[]) {
     QUdpSocket *inSock = new QUdpSocket();
     if (!inSock->bind(QHostAddress::Any, inPort)) {
         cerr << "bind error" << endl;
-        return(1);
+        return 1;
     }
+
 
     UdpEncoder encoder(inSock, QHostAddress::LocalHost, p, b1, k1);
     

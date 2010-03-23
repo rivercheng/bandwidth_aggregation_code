@@ -8,15 +8,19 @@
 
 class QUdpSocket;
 class QTimer;
+class QFile;
 class UdpEncoder : public QObject {
     Q_OBJECT
 public:
     UdpEncoder(QUdpSocket *socket, QHostAddress outAddr, \
-            quint16 outPort, int b, int k);
+            quint16 outPort, int b, int k, QFile *f = 0);
 private slots:
     void processPendingDatagrams();
     void processTimer();
     void reset();
+private:
+    void recording(PacketID);
+    void recordingFEC(ChunkID);
 private:
     struct PacketToSend {
         QByteArray packet;
@@ -31,6 +35,7 @@ private:
     quint16      outPort_;
     int b_;
     int k_;
+    QFile *records_;
     PacketID id_;
     QVector<FECChunk*> chunks_;
     QTimer *timer;

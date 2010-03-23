@@ -4,6 +4,7 @@
 #include <QTextStream>
 #include <QCoreApplication>
 #include <QUdpSocket>
+#include <QDateTime>
 #include "decoder.hh"
 #include "listener.hh"
 
@@ -90,7 +91,17 @@ int main(int argc, char *argv[]) {
         return(1);
     }
 
-    UdpListener listener(inSock, QHostAddress::LocalHost, p, b2, k2, delay2);
+    QString filename;
+    QTextStream fs(&filename);
+    fs << "incoming_record_" << QDateTime::currentDateTime().toString("yy:MM:dd:hh:mm:ss");
+    
+    QFile rf(filename);
+    if (! rf.open(QIODevice::WriteOnly)) {
+        cerr << "cannot open file " << filename << endl;
+        return 1;
+    }
+    
+    UdpListener listener(inSock, QHostAddress::LocalHost, p, b2, k2, delay2, &rf);
     
     app.exec();
     return 0;
