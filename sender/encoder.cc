@@ -67,7 +67,15 @@ void UdpEncoder::processPendingDatagrams()
         udpSocket_->readDatagram(datagram.data(), datagram.size());
         if (b_ * k_ == 0) { 
             //no fec
-            udpSocket_->writeDatagram(wrapPacket(id_, datagram), outAddr_, outPort_);
+            QByteArray wrappedPacket(wrapPacket(id_, datagram));
+            int res = udpSocket_->writeDatagram(wrappedPacket, outAddr_, outPort_);
+            while (res == -1) {
+                usleep(100);
+                res = udpSocket_->writeDatagram(wrappedPacket, outAddr_, outPort_);
+            } 
+            if (res < wrappedPacket.size()) {
+                qDebug() << "Cannot send all";
+            }
             if (records_ != 0) {
                 recording(id_);
             }
@@ -87,7 +95,13 @@ void UdpEncoder::processPendingDatagrams()
         chunks_[cid]->addPacket(id_, datagram);
         
         QByteArray wrappedPacket = wrapPacket(id_, datagram);
-        udpSocket_->writeDatagram(wrappedPacket, outAddr_, outPort_);
+        int res = udpSocket_->writeDatagram(wrappedPacket, outAddr_, outPort_);
+        while (res == -1) {
+            udpSocket_-> writeDatagram(wrappedPacket, outAddr_, outPort_);
+        }
+        if (res < wrappedPacket.size()) {
+            qDebug() << "Cannot send all";
+        }
         if (records_ != 0 ) {
             recording(id_);
         }
@@ -96,7 +110,12 @@ void UdpEncoder::processPendingDatagrams()
 
         if (chunks_[cid]->FECReady()) {
             QByteArray fecPacket = chunks_[cid]->packet();
-            udpSocket_->writeDatagram(wrapFecPacket(cid, fecPacket), outAddr_, outPort_);
+            int res = udpSocket_->writeDatagram(wrapFecPacket(cid, fecPacket), outAddr_, outPort_);
+            while (res == -1)
+            {
+                usleep(100);
+                res = udpSocket_->writeDatagram(wrapFecPacket(cid, fecPacket), outAddr_, outPort_);
+            }
             if (records_ != 0) {
                 recordingFEC(cid);
             }
