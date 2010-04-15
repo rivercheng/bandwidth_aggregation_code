@@ -4,8 +4,9 @@
 
 TEMPLATE = app
 TARGET = 
-DEPENDPATH += .
-INCLUDEPATH += .
+DEPENDPATH += . ../include
+INCLUDEPATH += . ../include
+LIBS += -lpcap
 QT += network
 
 # Input

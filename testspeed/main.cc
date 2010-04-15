@@ -5,12 +5,13 @@
 #include <QCoreApplication>
 #include <QUdpSocket>
 #include <QDateTime>
+#include "checksend.hh"
 
 QTextStream cout(stdout, QIODevice::WriteOnly);
 QTextStream cerr(stderr, QIODevice::WriteOnly);
 
 void usage(QStringList args) {
-    cerr << "Usage: " << args[0] << " <outPort> <outAddr> " << endl;
+    cerr << "Usage: " << args[0] << " <outAddr> <outPort>" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -23,17 +24,17 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     bool ok1;
-    quint16 outPort = args[1].toInt(&ok1);
+    quint16 outPort = args[2].toInt(&ok1);
     if (!ok1) {
         usage(args);
-        cerr << args[1] << " is not a valid port number" << endl;
+        cerr << args[2] << " is not a valid port number" << endl;
         return 1;
     }
     
-    QHostAddress outAddr = QHostAddress(args[2]);
+    QHostAddress outAddr = QHostAddress(args[1]);
     if (outAddr.isNull()) {
         usage(args);
-        cerr << args[2] << " is not a valid address" << endl;
+        cerr << args[1] << " is not a valid address" << endl;
         return 1;
     }
 
