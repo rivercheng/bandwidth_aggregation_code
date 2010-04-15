@@ -4,6 +4,13 @@
 #include <QDataStream>
 #include "chunk.hh"
 #include "gettime.hh"
+struct PacketInfo {
+    int id;
+    unsigned int sec;
+    unsigned int usec;
+    quint16 len;
+};
+
 
 inline QByteArray wrapPacket(PacketID pid, QByteArray datagram)
 {
@@ -14,6 +21,14 @@ inline QByteArray wrapPacket(PacketID pid, QByteArray datagram)
     return header + datagram;
 }
 
+PacketInfo packetInfo(QByteArray datagram)
+{
+    QDataStream dstr(&datagram, QIODevice::ReadOnly);
+    PacketInfo info;
+    dstr >> info.id >> info.sec >> info.usec >> info.len;
+    return info;
+}
+
 inline QByteArray wrapFecPacket(ChunkID cid, QByteArray datagram)
 {
     return wrapPacket(static_cast<PacketID>(-cid-1), datagram);
@@ -21,7 +36,7 @@ inline QByteArray wrapFecPacket(ChunkID cid, QByteArray datagram)
 
 inline QByteArray dewrap(QByteArray datagram)
 {
-    QDataStream dstr(datagram);
+    QDataStream dstr(&datagram, QIODevice::ReadOnly);
     int id;
     quint16 len;
     unsigned int sec;

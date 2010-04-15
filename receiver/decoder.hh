@@ -5,7 +5,7 @@
 #include <QHostAddress>
 #include "chunk.hh"
 #include "gettime.hh"
-#include "header.hh"
+//#include "header.hh"
 
 class QUdpSocket;
 class QTimer;

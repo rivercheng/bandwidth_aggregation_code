@@ -1,7 +1,7 @@
 #ifndef __UDP_LISTENER_H__
 #define __UDP_LISTENER_H__
 #include <QObject>
-#include <QVector>
+#include <QList>
 #include <QHostAddress>
 #include <QHash>
 

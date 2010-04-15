@@ -4,6 +4,7 @@
 #include <QTimer>
 #include <QFile>
 #include "decoder.hh"
+#include "header.hh"
 UdpDecoder::UdpDecoder(QUdpSocket *socket, QHostAddress outAddr, quint16 outPort, \
         int b, int k, unsigned int delay, QFile *f)
     :udpSocket_(socket), outAddr_(outAddr), outPort_(outPort), \

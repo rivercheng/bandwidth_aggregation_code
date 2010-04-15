@@ -6,7 +6,7 @@ QT += network
 QT -= gui
 TEMPLATE = app
 TARGET = 
-DEPENDPATH += .
+DEPENDPATH += . ../include
 INCLUDEPATH += . ../include
 
 # Input
