@@ -102,9 +102,9 @@ int main(int argc, char *argv[]) {
         QByteArray packet(packetSize - 14, 'a');
         int res = 0;
         do {
-            foreach (QUdpSocket *sock, socks) {
+            foreach (CheckSocket *sock, socks) {
                 QByteArray wrappedPacket(wrapPacket(index, packet));
-                res = sock->writeDatagram(wrappedPacket, outAddr, outPort);
+                res = sock->sendData(wrappedPacket);
                 if (res != -1) {
                     index++;
                     PacketInfo info(packetInfo(wrappedPacket));
