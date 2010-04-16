@@ -45,12 +45,10 @@ qint64 CheckSocket::sendData(const QByteArray & datagram)
 
 //void CheckSocket::recved(PacketID id) {
 void CheckSocket::recved(bool isResend) {
-    //if (id == sentID_) {
-    //qDebug() << "recved";
-    if (isResend_ ) {
-        timer_ -> stop();
-    }
-    if (isResend == isResend_) {
+    //only when isResend_ == false
+    //isResend == true, we need to ignore this information
+    if (isResend_ || !isResend) {
+        timer_->stop();
         isAvailable_ = true;
         emit ready();
     }
