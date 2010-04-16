@@ -3,7 +3,7 @@
 #include "header.hh"
 #include <QTimer>
 CheckSocket::CheckSocket(const QString& name, const QHostAddress& srcAddr, quint16 srcPort, const QHostAddress& dstAddr, quint16 dstPort, QObject *parent)
-    :QUdpSocket(parent), addr_(dstAddr), port_(dstPort), sentID_(-1), isAvailable_(true)
+    :QUdpSocket(parent), addr_(dstAddr), port_(dstPort), sentID_(-1), isAvailable_(true), isResend_(false)
 {
     //device_ = new Device(name, localPort(), addr, port);
     if(!bind(srcAddr, srcPort)) {
@@ -12,8 +12,8 @@ CheckSocket::CheckSocket(const QString& name, const QHostAddress& srcAddr, quint
     }
     device_ = new Device(name, this, addr_, port_);
     timer_  = new QTimer(this);
-    connect(device_, SIGNAL(received()), this, SLOT(recved()));
-    connect(this, SIGNAL(sent()), device_, SLOT(capture()));
+    connect(device_, SIGNAL(received(bool)), this, SLOT(recved(bool)));
+    connect(this, SIGNAL(sent(bool)), device_, SLOT(capture(bool)));
     connect(timer_, SIGNAL(timeout()), this, SLOT(resend()));
 }
 
@@ -36,19 +36,24 @@ qint64 CheckSocket::sendData(const QByteArray & datagram)
             //qDebug() << "retry";
             res = writeDatagram(datagram, addr_, port_);
     };
-    //qDebug() << "sent " << res;
+    //qDebug() << "sent " << sentID_ << " " << res;
     timer_->start(1);
-    emit sent();
+    isResend_ = false;
+    emit sent(false);
     return res;
 }
 
 //void CheckSocket::recved(PacketID id) {
-void CheckSocket::recved() {
+void CheckSocket::recved(bool isResend) {
     //if (id == sentID_) {
     //qDebug() << "recved";
-    isAvailable_ = true;
-    timer_->stop();
-    emit ready();
+    if (isResend_ ) {
+        timer_ -> stop();
+    }
+    if (isResend == isResend_) {
+        isAvailable_ = true;
+        emit ready();
+    }
 }
 
 void CheckSocket::resend() {
@@ -58,12 +63,12 @@ void CheckSocket::resend() {
     int res = writeDatagram(packet_, addr_, port_);
     while (res == -1) {
             usleep(100);
-            qDebug() << "retry";
+            //qDebug() << "retry";
             res = writeDatagram(packet_, addr_, port_);
     };
-    qDebug() << "resend " << res;
+    //qDebug() << "resend " << res;
     timer_->start(1);
-    emit sent();
+    emit sent(true);
 }
 
 

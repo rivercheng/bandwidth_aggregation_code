@@ -13,9 +13,9 @@ public:
     Device(QString name, CheckSocket *sock, QHostAddress outAddr, quint16 outPort);
 signals:
     //void received(PacketID id);
-    void received(void);
+    void received(bool isResend);
 public slots:
-    void capture(void);
+    void capture(bool isResend);
 private:
     void init();
     CheckSocket *sock_;

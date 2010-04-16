@@ -47,12 +47,15 @@ void Device::init() {
     }
 }
 
-void Device::capture() {
+void Device::capture(bool isResend) {
     struct pcap_pkthdr  header;
     const u_char *p;
     p=pcap_next(handle, &header);
     if (p) {
-       emit received();
+        //QByteArray pdata((const char*)p, 14);
+        //PacketID id = packetInfo(pdata).id;
+        //qDebug() << "captured " << id;
+        emit received(isResend);
     }
 }
 
