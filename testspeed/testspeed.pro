@@ -10,4 +10,5 @@ LIBS += -lpcap
 QT += network
 
 # Input
-SOURCES += main.cc
+HEADERS += device.hh checksocket.hh
+SOURCES += main.cc device.cc checksocket.cc

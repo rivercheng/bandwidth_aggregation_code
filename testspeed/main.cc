@@ -5,7 +5,7 @@
 #include <QCoreApplication>
 #include <QUdpSocket>
 #include <QDateTime>
-#include "checksend.hh"
+#include "checksocket.hh"
 
 QTextStream cout(stdout, QIODevice::WriteOnly);
 QTextStream cerr(stderr, QIODevice::WriteOnly);
@@ -38,17 +38,21 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    QUdpSocket *sock = new QUdpSocket();
+    //QUdpSocket *sock = new QUdpSocket();
+    QString name("eth0");
+    CheckSocket *sock = new CheckSocket(name, QHostAddress::Any, 0, outAddr, outPort);
 
     double total = 0.;
     QTime  t;
     t.start();
     for (int i = 0; i < 10000; i++) {
         QByteArray packet(1360, 'a'); //dummy packet
-        int res = sock->writeDatagram(packet, outAddr, outPort);
+        //int res = sock->writeDatagram(packet, outAddr, outPort);
+        int res = sock->sendData(packet);
         while (res == -1) {
              usleep(100);
-             res = sock->writeDatagram(packet, outAddr, outPort);
+             //res = sock->writeDatagram(packet, outAddr, outPort);
+             res = sock->sendData(packet);
              //qDebug() << "send failure";
         } 
         if (res < packet.size()) {

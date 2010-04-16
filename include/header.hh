@@ -21,7 +21,7 @@ inline QByteArray wrapPacket(PacketID pid, QByteArray datagram)
     return header + datagram;
 }
 
-PacketInfo packetInfo(QByteArray datagram)
+inline PacketInfo packetInfo(QByteArray datagram)
 {
     QDataStream dstr(&datagram, QIODevice::ReadOnly);
     PacketInfo info;

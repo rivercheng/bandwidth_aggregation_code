@@ -4,6 +4,7 @@ up*
 M*
 S*
 *.8
+*.mts
 *moc*
 output*
 *.log
@@ -19,4 +20,8 @@ splitter/splitter
 setRoute/setRoute
 sender/sender
 receiver/receiver
+incoming*
+outgoing*
+*.sav
+*.7z
 
