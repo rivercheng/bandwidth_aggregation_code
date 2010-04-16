@@ -11,8 +11,7 @@ QTextStream cout(stdout, QIODevice::WriteOnly);
 QTextStream cerr(stderr, QIODevice::WriteOnly);
 
 void usage(QStringList args) {
-    cerr << "Usage: " << args[0] << " <inPort> <outPort> <outAddr> <b1> <k1> <b2> <k2> [delay1: 500ms] [delay2: 500ms" \
-        << endl;
+    cerr << "Usage: " << args[0] << " <inPort> <outPort> <outAddr> <b> <k> [delay: 500ms]" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -20,7 +19,7 @@ int main(int argc, char *argv[]) {
 
     //Parse the command line arguments
     QStringList args = app.arguments();
-    if (args.size() < 8) {
+    if (args.size() < 5) {
         usage(args);
         return 1;
     }
@@ -52,12 +51,12 @@ int main(int argc, char *argv[]) {
     }
 
     int delay = 500;
-    if (args.size() > 8) {
+    if (args.size() > 6) {
         bool ok;
-        delay = args[8].toInt(&ok);
+        delay = args[6].toInt(&ok);
         if (!ok) {
             usage(args);
-            cerr << args[8] << " is not a valid delay value." <<endl;
+            cerr << args[6] << " is not a valid delay value." <<endl;
             return 1;
         }
     }

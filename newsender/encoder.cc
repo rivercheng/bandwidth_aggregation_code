@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <QFile>
 #include <QThreadPool>
+#include <QCoreApplication>
 #include "encoder.hh"
 #include "header.hh"
 #include "checksocket.hh"
@@ -24,7 +25,7 @@ void SendingThread::run() {
     if (res == -1) {
          qDebug() << "sent error";
     } 
-    if (res < packet_.size()) {
+    else if (res < packet_.size()) {
          qDebug() << "Cannot send all";
     }
 }
@@ -54,11 +55,13 @@ void UdpEncoder::sendPacket(const QByteArray & packet) {
     while (!sent) {
         foreach(CheckSocket* sock, socks_) {
             if (sock->isAvailable()) {
-                SendingThread *thread = new SendingThread(sock, packet);
-                QThreadPool::globalInstance()->start(thread);
+                //SendingThread *thread = new SendingThread(sock, packet);
+                //QThreadPool::globalInstance()->start(thread);
+                sock->sendData(packet);
                 sent = true;
             }
         }
+        QCoreApplication::processEvents();
     }
 }
 
