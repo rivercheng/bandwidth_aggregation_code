@@ -11,10 +11,10 @@ CheckSocket::CheckSocket(const QString& name, const QHostAddress& srcAddr, quint
         exit(1);
     }
     device_ = new Device(name, this, addr_, port_);
-    timer_  = new QTimer(this);
-    connect(device_, SIGNAL(received(bool)), this, SLOT(recved(bool)));
-    connect(this, SIGNAL(sent(bool)), device_, SLOT(capture(bool)));
-    connect(timer_, SIGNAL(timeout()), this, SLOT(resend()));
+    //timer_  = new QTimer(this);
+    connect(device_, SIGNAL(received()), this, SLOT(recved()));
+    connect(this, SIGNAL(sent()), device_, SLOT(capture()));
+    //connect(timer_, SIGNAL(timeout()), this, SLOT(resend()));
 }
 
 CheckSocket::~CheckSocket() {
@@ -27,49 +27,29 @@ qint64 CheckSocket::sendData(const QByteArray & datagram)
         return -1;
     }
     isAvailable_ = false;
-    qint64 res = writeDatagram(datagram, addr_, port_);
+    packet_ = datagram;
     int sendID = packetInfo(datagram).id;
     sentID_ = sendID;
-    packet_ = datagram;
-    while (res == -1) {
-            usleep(100);
-            //qDebug() << "retry";
-            res = writeDatagram(datagram, addr_, port_);
-    };
-    //qDebug() << "sent " << sentID_ << " " << res;
-    isResend_ = false;
-    timer_->start(1);
-    emit sent(false);
+    qint64 res = 0;
+    while (!isAvailable_) {
+        res = writeDatagram(datagram, addr_, port_);
+        while (res == -1) {
+                usleep(100);
+                //qDebug() << "retry";
+                res = writeDatagram(datagram, addr_, port_);
+        };
+        emit sent();
+        usleep(1000);
+        //QCoreApplication::processEvents();
+    }
     return res;
 }
 
 //void CheckSocket::recved(PacketID id) {
-void CheckSocket::recved(bool isResend) {
-    //only when isResend_ == false
-    //isResend == true, we need to ignore this information
-    if (isResend_ || !isResend) {
-        timer_->stop();
-        isAvailable_ = true;
-        emit ready();
-    }
+void CheckSocket::recved() {
+    isAvailable_ = true;
+    emit ready();
 }
-
-void CheckSocket::resend() {
-    if (isAvailable_) {
-        return;
-    }
-    int res = writeDatagram(packet_, addr_, port_);
-    while (res == -1) {
-            usleep(100);
-            //qDebug() << "retry";
-            res = writeDatagram(packet_, addr_, port_);
-    };
-    //qDebug() << "resend " << res;
-    isResend_ = true;
-    timer_->start(1);
-    emit sent(true);
-}
-
 
 
 

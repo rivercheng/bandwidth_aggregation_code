@@ -20,11 +20,11 @@ public:
     }
 public slots:
     //void recved(PacketID id);
-    void recved(bool isResend);
-    void resend(void);
+    void recved(void);
+    //void resend(void);
 signals:
     void ready(void);
-    void sent(bool isResend);
+    void sent(void);
 private:
     Device*  device_;
     QHostAddress addr_;
