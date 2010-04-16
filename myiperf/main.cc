@@ -121,8 +121,10 @@ int main(int argc, char *argv[]) {
     }
     for (int i = 0; i < 10; i++) {
         QByteArray packet(64, 'a');
-        foreach (QUdpSocket *sock, socks) {
-            sock->writeDatagram(wrapPacket(-index, packet), outAddr, outPort);
+        foreach (CheckSocket *sock, socks) {
+            sock->sendData(wrapPacket(-index, packet));
+            QCoreApplication::processEvents();
+            usleep(1000000);
         }
     }
 

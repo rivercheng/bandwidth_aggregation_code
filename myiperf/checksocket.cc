@@ -37,8 +37,8 @@ qint64 CheckSocket::sendData(const QByteArray & datagram)
             res = writeDatagram(datagram, addr_, port_);
     };
     //qDebug() << "sent " << sentID_ << " " << res;
-    timer_->start(1);
     isResend_ = false;
+    timer_->start(1);
     emit sent(false);
     return res;
 }
@@ -65,6 +65,7 @@ void CheckSocket::resend() {
             res = writeDatagram(packet_, addr_, port_);
     };
     //qDebug() << "resend " << res;
+    isResend_ = true;
     timer_->start(1);
     emit sent(true);
 }
