@@ -7,6 +7,8 @@ TARGET =
 DEPENDPATH += . ../include
 INCLUDEPATH += . ../include
 QT += network
+LIBS += -lpcap
 
 # Input
-SOURCES += main.cc
+HEADERS += device.hh checksocket.hh
+SOURCES += main.cc device.cc checksocket.cc

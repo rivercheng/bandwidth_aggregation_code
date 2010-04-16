@@ -7,6 +7,7 @@
 #include <QDateTime>
 #include "listAddr.hh"
 #include "header.hh"
+#include "checksocket.hh"
 
 QTextStream cout(stdout, QIODevice::WriteOnly);
 QTextStream cerr(stderr, QIODevice::WriteOnly);
@@ -83,16 +84,12 @@ int main(int argc, char *argv[]) {
     //===================================================================================
     //find out all the valid IP addresses in this computer and create UDP sockets for each address.
     //Only one IP address is used for one interface.
-    QList<QHostAddress> addrs = ListAddr::validIPv4Addrs();
-    QList<QUdpSocket *> socks;
+    QList<Interface> infs = ListAddr::validIPv4Infs();
+    QList<CheckSocket *> socks;
     
-    foreach(QHostAddress addr, addrs) {
-        QUdpSocket *sock = new QUdpSocket();
-        if (!sock->bind(addr, 0)) {
-            cerr << "bind error" << endl;
-            return 1;
-        }
-        qDebug() << addr.toString() <<" is used";
+    foreach(Interface inf, infs) {
+        CheckSocket *sock = new CheckSocket(inf.name, inf.addr, 0, outAddr, outPort);
+        qDebug() << inf.name << " " << inf.addr.toString() <<" is used";
         socks.push_back(sock);
     }
     //===================================================================================
@@ -117,6 +114,7 @@ int main(int argc, char *argv[]) {
                 }
             }
             if (res == -1) {
+                QCoreApplication::processEvents();
                 usleep(100);
             }
         } while (res == -1 && t.elapsed() < duration * 1000);

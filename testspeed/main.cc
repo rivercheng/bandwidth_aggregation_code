@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
              //res = sock->writeDatagram(packet, outAddr, outPort);
              res = sock->sendData(packet);
              //qDebug() << "send failure";
+             QCoreApplication::processEvents();
         } 
         if (res < packet.size()) {
              qDebug() << "Cannot send all";
