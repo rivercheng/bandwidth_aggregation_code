@@ -56,6 +56,8 @@ void Device::capture() {
         //PacketID id = packetInfo(pdata).id;
         //qDebug() << "captured " << id;
         emit received();
+    } else {
+        emit resend();
     }
 }
 

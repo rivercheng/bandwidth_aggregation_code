@@ -14,6 +14,7 @@ public:
 signals:
     //void received(PacketID id);
     void received(void);
+    void resend(void);
 public slots:
     void capture(void);
 private:

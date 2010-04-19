@@ -32,17 +32,13 @@ qint64 CheckSocket::sendData(const QByteArray & datagram)
     int sendID = packetInfo(datagram).id;
     sentID_ = sendID;
     qint64 res = 0;
-    while (!isAvailable_) {
-        res = writeDatagram(datagram, addr_, port_);
-        while (res == -1) {
+    res = writeDatagram(datagram, addr_, port_);
+    while (res == -1) {
                 usleep(100);
                 //qDebug() << "retry";
                 res = writeDatagram(datagram, addr_, port_);
-        };
-        emit sent();
-        usleep(2000);
-        QCoreApplication::processEvents();
-    }
+    };
+    emit sent();
     return res;
 }
 
@@ -51,6 +47,16 @@ void CheckSocket::recved() {
     isAvailable_ = true;
     emit ready();
 }
+
+void CheckSocket::resend() {
+    qint64 res = writeDatagram(packet_, addr_, port_);
+    while (res == -1) {
+        usleep(100);
+        res = writeDatagram(packet_, addr_, port_);
+    }
+    emit sent();
+}
+
 
 
 

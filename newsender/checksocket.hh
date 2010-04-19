@@ -24,7 +24,7 @@ public:
 public slots:
     //void recved(PacketID id);
     void recved(void);
-    //void resend(void);
+    void resend(void);
 signals:
     void ready(void);
     void sent(void);
