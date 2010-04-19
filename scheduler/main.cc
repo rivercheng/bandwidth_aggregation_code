@@ -53,17 +53,18 @@ int main(int argc, char* argv[]) {
         return(1);
     }
 
+    /*
     QString filename;
     QTextStream fs(&filename);
-    fs << "incoming_record_" << QDateTime::currentDateTime().toString("yy:MM:dd:hh:mm:ss");
+    fs << "outgoing_record_" << QDateTime::currentDateTime().toString("yy:MM:dd:hh:mm:ss");
 
     QFile rf(filename);
     if (! rf.open(QIODevice::WriteOnly)) {
         cerr << "cannot open file " << filename << endl;
         return 1;
-    }
+    }*/
 
-    Listener listener(sock, outAddr, outPort, b, k, &rf);
+    Listener listener(sock, outAddr, outPort, b, k);
     
     app.exec();
     return 0;
