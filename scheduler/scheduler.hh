@@ -26,6 +26,7 @@ private:
     QMutex             sendingMutex_;
     QSemaphore         *havingPacket_;
     QSemaphore         *senderAvailable_;
+    bool    inDropMode;
 private:
     Sender *selectSender(void);
 };

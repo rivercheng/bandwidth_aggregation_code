@@ -3,9 +3,11 @@
 #include "header.hh"
 #include "gettime.hh"
 #include "sender.hh"
-const int MAX_DELAY = 1;
+const int MAX_DELAY = 2;
+const int MIN_DELAY = 1; 
 
 Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort) 
+    :inDropMode(false)
 {
     havingPacket_    = new QSemaphore();
     senderAvailable_ = new QSemaphore();
@@ -25,9 +27,18 @@ void Scheduler::run() {
         //ignore the late packet
         QByteArray packet(buffer_.dequeue());
         PacketInfo info = packetInfo(packet);
-        PreciseTime t = PreciseTime::getTime();
-        if ((t - PreciseTime(info.sec, info.usec)) > PreciseTime(MAX_DELAY, 0)) {
-            continue;
+        PreciseTime diff =  PreciseTime::getTime() - PreciseTime(info.sec, info.usec);
+        if (inDropMode) {
+            if (diff > PreciseTime(MIN_DELAY, 0)) {
+                continue;
+            } else {
+                inDropMode = false;
+            }
+        } else {
+            if (diff > PreciseTime(MAX_DELAY, 0)) {
+                inDropMode = true;
+                continue;
+            }
         }
         
         QMutexLocker lock(&sendingMutex_); //the selecting and sending cannot be interrupted by sendAll()
