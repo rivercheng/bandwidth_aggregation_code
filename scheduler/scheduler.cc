@@ -1,6 +1,10 @@
 #include "scheduler.hh"
 #include "listAddr.hh"
+#include "header.hh"
+#include "gettime.hh"
 #include "sender.hh"
+const int MAX_DELAY = 1;
+
 Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort) 
 {
     havingPacket_    = new QSemaphore();
@@ -16,11 +20,21 @@ Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort)
 void Scheduler::run() {
     while(true) {
         havingPacket_->acquire();
+        QMutexLocker locker(&bufferMutex_);
+
+        //ignore the late packet
+        QByteArray packet(buffer_.dequeue());
+        PacketInfo info = packetInfo(packet);
+        PreciseTime t = PreciseTime::getTime();
+        if ((t - PreciseTime(info.sec, info.usec)) > PreciseTime(MAX_DELAY, 0)) {
+            continue;
+        }
+        
         QMutexLocker lock(&sendingMutex_); //the selecting and sending cannot be interrupted by sendAll()
         senderAvailable_->acquire();
         Sender *sender = selectSender();
-        QMutexLocker locker(&bufferMutex_);
-        sender->send(buffer_.dequeue());
+
+        sender->send(packet);
     }
 }
 
@@ -41,6 +55,7 @@ void Scheduler::sendAll(const QByteArray& packet){
     QMutexLocker locker(&sendingMutex_);
     foreach(Sender *sender, senders_) {
         if (sender->isAvailable()) {
+            senderAvailable_->acquire(); //use an available sender
             sender->send(packet);
         }
     }

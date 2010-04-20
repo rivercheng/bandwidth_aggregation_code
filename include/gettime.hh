@@ -50,6 +50,17 @@ struct PreciseTime {
         }
     }
 
+    bool operator>(const PreciseTime& other) const {
+        if (sec > other.sec) {
+            return true;
+        } else if (sec < other.sec) {
+            return false;
+        } else {
+            return usec > other.usec;
+        }
+    }
+
+
     bool operator<=(const PreciseTime& other) const {
         if (sec < other.sec) {
             return true;
