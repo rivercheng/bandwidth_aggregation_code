@@ -55,9 +55,12 @@ void UdpDecoder::processPendingDatagrams()
     while (udpSocket_->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket_->pendingDatagramSize());
-        udpSocket_->readDatagram(datagram.data(), datagram.size());
+        QHostAddress srcAddr;
+        quint16      srcPort;
+        udpSocket_->readDatagram(datagram.data(), datagram.size(), &srcAddr, &srcPort);
 
         if (dewrap(datagram).isEmpty()) {
+            qDebug() << "heartbeat from " << srcAddr.toString() << ":" << srcPort;
             continue; //ignore empty packets
         } else {
             timer_->start(3000);

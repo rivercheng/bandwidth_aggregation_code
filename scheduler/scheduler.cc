@@ -16,6 +16,7 @@ Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort)
 void Scheduler::run() {
     while(true) {
         havingPacket_->acquire();
+        QMutexLocker lock(&sendingMutex_); //the selecting and sending cannot be interrupted by sendAll()
         senderAvailable_->acquire();
         Sender *sender = selectSender();
         QMutexLocker locker(&bufferMutex_);
@@ -36,7 +37,8 @@ Sender *Scheduler::selectSender() {
     return availableSenders[choice];
 }
 
-void Scheduler::sendAll(const QByteArray& packet) const{
+void Scheduler::sendAll(const QByteArray& packet){
+    QMutexLocker locker(&sendingMutex_);
     foreach(Sender *sender, senders_) {
         if (sender->isAvailable()) {
             sender->send(packet);

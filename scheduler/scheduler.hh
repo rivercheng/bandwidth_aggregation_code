@@ -18,11 +18,12 @@ public:
         buffer_.enqueue(packet);
         havingPacket_->release();
     }
-    void sendAll(const QByteArray& packet) const;
+    void sendAll(const QByteArray& packet);
 private:
     QQueue<QByteArray> buffer_;
     QList<Sender *>    senders_;
     QMutex             bufferMutex_;
+    QMutex             sendingMutex_;
     QSemaphore         *havingPacket_;
     QSemaphore         *senderAvailable_;
 private:
