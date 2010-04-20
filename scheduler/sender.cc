@@ -79,7 +79,7 @@ void Sender::initPcap(const QString & devName) {
         exit(1);
     }
 
-    handle_ = pcap_open_live(dev, 2048, 1, 300, errbuf);
+    handle_ = pcap_open_live(dev, 2048, 1, 5000, errbuf);
     if (handle_ == NULL) {
         qDebug() << "Could not open device "<< dev <<": " << errbuf;
         exit(1);

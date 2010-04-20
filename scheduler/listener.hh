@@ -4,6 +4,7 @@
 #include <QHostAddress>
 #include "chunk.hh"
 
+class QTimer;
 class Scheduler;
 class QFile;
 class QUdpSocket;
@@ -13,6 +14,8 @@ public:
     Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, int b, int k);
 private slots:
     void processPendingDatagrams();
+    void reset();
+    void keeplive();
 private:
     QUdpSocket *udpSocket_;
     Scheduler *scheduler_;
@@ -20,6 +23,8 @@ private:
     int k_;
     QFile *f_;
     PacketID id_;
+    QTimer *timer_;
+    QTimer *resetTimer_;
     QVector<FECChunk*> chunks_;
 };
 #endif

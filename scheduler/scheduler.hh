@@ -7,6 +7,7 @@
 #include <QHostAddress>
 #include <QSemaphore>
 
+class QTimer;
 class Sender;
 class Scheduler : public QThread {
 public:
@@ -17,6 +18,7 @@ public:
         buffer_.enqueue(packet);
         havingPacket_->release();
     }
+    void sendAll(const QByteArray& packet) const;
 private:
     QQueue<QByteArray> buffer_;
     QList<Sender *>    senders_;

@@ -36,4 +36,13 @@ Sender *Scheduler::selectSender() {
     return availableSenders[choice];
 }
 
+void Scheduler::sendAll(const QByteArray& packet) const{
+    foreach(Sender *sender, senders_) {
+        if (sender->isAvailable()) {
+            sender->send(packet);
+        }
+    }
+}
+
+
 

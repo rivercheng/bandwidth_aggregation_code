@@ -17,11 +17,10 @@ UdpDecoder::UdpDecoder(QUdpSocket *socket, QHostAddress outAddr, quint16 outPort
     
     chunks_.resize(10000);
     packetBuffer_.resize(10000);
-    connect(this, SIGNAL(send()), this, SLOT(sendPacket()));
 
     timer_ = new QTimer();
     connect(timer_, SIGNAL(timeout()), this, SLOT(reset()));
-    timer_->start(2000);
+    timer_->start(3000);
 
 }
 
@@ -53,11 +52,16 @@ void UdpDecoder::recording(PacketID id, int sec, int usec) {
 void UdpDecoder::processPendingDatagrams()
 {
     QTextStream cout(stdout);
-    timer_->start(2000);
     while (udpSocket_->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket_->pendingDatagramSize());
         udpSocket_->readDatagram(datagram.data(), datagram.size());
+
+        if (dewrap(datagram).isEmpty()) {
+            continue; //ignore empty packets
+        } else {
+            timer_->start(3000);
+        }
 
           // in the decoder
           PacketID pid = 0;
@@ -105,6 +109,7 @@ void UdpDecoder::processPendingDatagrams()
           } else {
               //Data Packet
             QByteArray dewrapped = dewrap(datagram);
+            //qDebug() << "is empty? " << dewrapped.isEmpty();
             chunks_[cid]->addPacket(pid, dewrapped);
             if (chunks_[cid]->full() && chunks_[cid]->FECreceived())
             {
@@ -120,7 +125,7 @@ void UdpDecoder::processPendingDatagrams()
           if (chunks_[cid]->recoverReady()) {
               QByteArray recoveredPacket = chunks_[cid]->packet();
               PacketID rpid = chunks_[cid]->recoverdID();
-              qDebug() << udpSocket_->localPort() << " recovered packet "<< rpid << " in chunk " << cid << endl;
+              //qDebug() << udpSocket_->localPort() << " recovered packet "<< rpid << " in chunk " << cid << endl;
               
               //Since we cannot know the exact sent time of the recovered packets.
               //Recovered Packets are assumed to be sent immediatelly after their previous packets.
@@ -146,7 +151,7 @@ UdpDecoder::insertPacket(PacketID pid, QByteArray packet, PreciseTime sendTime) 
     }
     if (allSent_) {
         allSent_ = false;
-        emit send();
+        sendPacket();
     }
 }
 
