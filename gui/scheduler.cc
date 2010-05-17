@@ -23,10 +23,14 @@ Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dic
 void Scheduler::run() {
     while(true) {
         havingPacket_->acquire();
-        QMutexLocker locker(&bufferMutex_);
+        QByteArray packet;
+        {
+            QMutexLocker locker(&bufferMutex_);
+            packet = buffer_.dequeue();
+        }
 
         //ignore the late packet
-        QByteArray packet(buffer_.dequeue());
+        //QByteArray packet(buffer_.dequeue());
         PacketInfo info = packetInfo(packet);
         PreciseTime diff =  PreciseTime::getTime() - PreciseTime(info.sec, info.usec);
         if (inDropMode) {

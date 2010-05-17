@@ -49,7 +49,9 @@ public slots:
                 if (totalFlow.isEmpty()) {
                     totalFlow = values;
                 } else {
-                    totalFlow += values;
+                    for (int i = 0; i < totalFlow.size(); i++) {
+                        totalFlow[i] += values[i];
+                    }
                 }
                 if (overlap_) {
                     flowList.append(values);

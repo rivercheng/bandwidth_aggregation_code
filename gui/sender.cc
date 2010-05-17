@@ -34,7 +34,7 @@ void Sender::run(void) {
             ;
         }
         isAvailable_ = true;
-        *dataflow_ += (packet_.size() - 14);
+        (*dataflow_) += (packet_.size() - 14);
         //qDebug() << packet_.size() << *dataflow_;
     }
 }
