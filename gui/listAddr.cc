@@ -1,24 +1,11 @@
-#ifndef __LIST_ADDR_H__
-#define __LIST_ADDR_H__
-#include <QNetworkInterface>
-#include <QHostAddress>
-#include <QDebug>
+#include "listAddr.hh"
 
-struct Interface {
-    QString name;
-    QHostAddress addr;
-    Interface(const QString& name, const QHostAddress& addr)
-        :name(name), addr(addr) {;}
-    bool operator==(const Interface& inf) const {
-        return name == inf.name && addr == inf.addr;
-    }
-};
+uint qHash(Interface k)
+{
+    return qHash(k.name) + qHash(k.addr);
+}
 
-extern uint qHash(Interface k);
-
-
-namespace ListAddr {
-QList<Interface> validIPv4Infs() {
+QList<Interface> ListAddr::validIPv4Infs() {
     QList<Interface> out_infs;
     QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
     foreach(QNetworkInterface inf, infs) {
@@ -47,7 +34,7 @@ QList<Interface> validIPv4Infs() {
     return out_infs;
 }
 
-QList<QHostAddress> validIPv4Addrs() {
+QList<QHostAddress> ListAddr::validIPv4Addrs() {
     QList<QHostAddress> addrs;
     QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
     foreach(QNetworkInterface inf, infs) {
@@ -75,5 +62,3 @@ QList<QHostAddress> validIPv4Addrs() {
     }
     return addrs;
 }
-}
-#endif
