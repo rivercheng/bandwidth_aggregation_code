@@ -16,12 +16,18 @@ public:
     virtual ~Sender(void);
     
     void run(void);
+
+    QHostAddress srcAddr(void) {
+        return srcAddr_;
+    }
     
     void send(const QByteArray & packet);
     
     bool isAvailable(void) {
         return isAvailable_;
     }
+
+    void changeSource(const QHostAddress& srcAddr, quint16 srcPort);
 private:
     void   initPcap(const QString & devName);
     
@@ -52,6 +58,7 @@ private:
     Sender(const Sender&);
     Sender& operator=(const Sender&);
 private:
+    QHostAddress srcAddr_;
     QHostAddress dstAddr_;
     quint16      dstPort_;
     QSemaphore   *readyToSend_;

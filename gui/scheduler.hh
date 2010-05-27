@@ -10,7 +10,9 @@
 
 class QTimer;
 class Sender;
+class ActiveConnection;
 class Scheduler : public QThread {
+    Q_OBJECT
 public:
     Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict);
     void run(void);
@@ -20,6 +22,11 @@ public:
         havingPacket_->release();
     }
     void sendAll(const QByteArray& packet);
+public slots:
+    void updateSenderIp(QHostAddress, QHostAddress);
+private:
+    Sender *selectSender(void);
+    void findActiveConnections();
 private:
     QQueue<QByteArray> buffer_;
     QList<Sender *>    senders_;
@@ -28,7 +35,6 @@ private:
     QSemaphore         *havingPacket_;
     QSemaphore         *senderAvailable_;
     bool    inDropMode;
-private:
-    Sender *selectSender(void);
+    QList<ActiveConnection*>  activeConnections_;
 };
 #endif

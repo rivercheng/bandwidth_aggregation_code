@@ -3,7 +3,7 @@
 #include <QUdpSocket>
 #include <cassert>
 Sender::Sender(const QString & devName, const QHostAddress & srcAddr, quint16 srcPort, const QHostAddress & dstAddr, quint16 dstPort, QSemaphore* readyToSend, FlowDict *dict)
-    :dstAddr_(dstAddr), dstPort_(dstPort), readyToSend_(readyToSend), \
+    :srcAddr_(srcAddr), dstAddr_(dstAddr), dstPort_(dstPort), readyToSend_(readyToSend), \
      isAvailable_(false), sock_(0), handle_(0), datalink_type_(DLT_NULL)
 {
     waitingPacket_ = new QSemaphore();
@@ -105,6 +105,14 @@ void Sender::initPcap(const QString & devName) {
     }
 
     datalink_type_ = pcap_datalink(handle_);
+}
+
+void Sender::changeSource(const QHostAddress& srcAddr, quint16 srcPort) {
+    if (!sock_->bind(srcAddr, srcPort)) {
+        qDebug() << "Cannot bind to " << srcAddr << ":" << srcPort;
+        exit(1);
+    }
+    qDebug() << "ip changed from " << srcAddr;
 }
 
 
