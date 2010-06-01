@@ -11,5 +11,5 @@ LIBS += -lqwt-qt4 -lpcap
 CONFIG += qt debug
 
 # Input
-HEADERS += flowratehistory.hh flowrategraph.hh listAddr.hh listener.hh scheduler.hh sender.hh updater.hh connection.hh
-SOURCES += main.cc listAddr.cc listener.cc scheduler.cc sender.cc
+HEADERS += flowratehistory.hh flowrategraph.hh listAddr.hh listener.hh scheduler.hh sender.hh updater.hh connection.hh config.hh mainwindow.hh splitter.hh
+SOURCES += main.cc listAddr.cc listener.cc scheduler.cc sender.cc mainwindow.cc splitter.cc
