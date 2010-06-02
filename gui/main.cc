@@ -14,13 +14,8 @@
 #include <QDateTime>
 #include <QFile>
 #include <QTimer>
-
 QTextStream cerr(stderr);
-
-void usage(QStringList args) {
-    cerr << "Usage: " << args[0] << " <inPort> <outAddr> <outPort> <b> <k>" << endl;
-}
-
+QTextStream cout(stdout);
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
