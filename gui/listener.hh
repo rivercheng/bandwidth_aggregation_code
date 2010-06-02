@@ -13,6 +13,7 @@ class Listener : public QObject {
     Q_OBJECT
 public:
     Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, int b, int k, FlowDict *dict);
+    virtual ~Listener();
 private slots:
     void processPendingDatagrams();
     void reset();
@@ -22,7 +23,6 @@ private:
     Scheduler *scheduler_;
     int b_;
     int k_;
-    QFile *f_;
     PacketID id_;
     QTimer *timer_;
     QTimer *resetTimer_;

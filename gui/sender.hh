@@ -62,7 +62,7 @@ private:
     QHostAddress dstAddr_;
     quint16      dstPort_;
     QSemaphore   *readyToSend_;
-    QSemaphore   *waitingPacket_;
+    QSemaphore   waitingPacket_;
     bool isAvailable_;
     QUdpSocket   *sock_;
     pcap_t       *handle_;

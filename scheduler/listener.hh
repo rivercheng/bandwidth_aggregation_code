@@ -12,6 +12,7 @@ class Listener : public QObject {
     Q_OBJECT
 public:
     Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, int b, int k);
+    virtual ~Listener();
 private slots:
     void processPendingDatagrams();
     void reset();

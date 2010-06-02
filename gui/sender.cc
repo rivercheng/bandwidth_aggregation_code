@@ -6,8 +6,7 @@ Sender::Sender(const QString & devName, const QHostAddress & srcAddr, quint16 sr
     :srcAddr_(srcAddr), dstAddr_(dstAddr), dstPort_(dstPort), readyToSend_(readyToSend), \
      isAvailable_(false), sock_(0), handle_(0), datalink_type_(DLT_NULL)
 {
-    waitingPacket_ = new QSemaphore();
-    sock_ = new QUdpSocket();
+    sock_ = new QUdpSocket(this);
     if (!sock_->bind(srcAddr, srcPort)) {
         qDebug() << "Cannot bind to port " << srcPort;
         exit(1);
@@ -22,14 +21,13 @@ Sender::~Sender() {
         pcap_close(handle_);
     }
     delete sock_;
-    delete waitingPacket_;
 }
 
 void Sender::run(void) {
     while(true) {
         //qDebug() << "in run";
         readyToSend_->release();
-        waitingPacket_->acquire();
+        waitingPacket_.acquire();
         while(!trySending()) {
             ;
         }
@@ -45,7 +43,7 @@ void Sender::send(const QByteArray & Packet) {
     isAvailable_ = false;
     packet_ = Packet;
     id_     = packetID(packet_);
-    waitingPacket_->release();
+    waitingPacket_.release();
 }
 
 bool Sender::trySending() {

@@ -7,7 +7,7 @@ const int MAX_DELAY = 2;
 const int MIN_DELAY = 1; 
 
 Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort) 
-    :inDropMode(false)
+    :inDropMode(false), stop(false)
 {
     havingPacket_    = new QSemaphore();
     senderAvailable_ = new QSemaphore();
@@ -20,7 +20,7 @@ Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort)
 }
 
 void Scheduler::run() {
-    while(true) {
+    while(!stop) {
         havingPacket_->acquire();
         QMutexLocker locker(&bufferMutex_);
 

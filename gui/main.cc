@@ -34,32 +34,11 @@ int main(int argc, char* argv[]) {
     config.outAddr = QHostAddress("137.132.145.225");
     
     
-    //find all the interfaces with valid IPv4 addresses.
-    QList<Interface> infs = ListAddr::validIPv4Infs();
-    FlowrateDict ratedict;
-    FlowDict     flowdict;
-    foreach(Interface inf, infs) {
-        ratedict[inf] = new FlowrateHistory(120);
-        flowdict[inf] = new long(0);
-    }
-
-    double interval = 1;
-    Updater updater(&ratedict, &flowdict, interval);
-
-    MainWindow mainWindow(infs, &ratedict, interval, &config); 
+    MainWindow mainWindow(&config); 
     mainWindow.setWindowTitle("Multiple Channels Scheduler");
     mainWindow.show();
-
-    Splitter splitter(&config, &flowdict);
-    QObject::connect(&mainWindow, SIGNAL(start()), &splitter, SLOT(start()));
-    QObject::connect(&mainWindow, SIGNAL(restart()), &splitter, SLOT(restart()));
     QObject::connect(&mainWindow, SIGNAL(quit()), &app, SLOT(quit()));
 
-    QTimer timer;
-    QObject::connect(&timer, SIGNAL(timeout()), &updater, SLOT(update()));
-    QObject::connect(&timer, SIGNAL(timeout()), &mainWindow, SLOT(plot()));
-
-    timer.start(interval*1000);
     app.exec();
     return 0;
 }

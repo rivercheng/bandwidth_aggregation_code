@@ -29,6 +29,13 @@ Listener::Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, in
     resetTimer_->start(3000);
 }
 
+Listener::~Listener() {
+    if (scheduler_) {
+        scheduler_->toStop();
+        scheduler_->wait();
+    }
+}
+
 void Listener::processPendingDatagrams()
 {
     QTextStream cout(stdout);

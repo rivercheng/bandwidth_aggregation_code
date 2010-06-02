@@ -8,14 +8,12 @@
 const int MAX_DELAY = 2;
 const int MIN_DELAY = 1; 
 
-Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict) 
-    :inDropMode(false)
+Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict, QObject *parent) 
+    :QThread(parent), inDropMode(false), toStop(false)
 {
-    havingPacket_    = new QSemaphore();
-    senderAvailable_ = new QSemaphore();
     QList<Interface> infs(ListAddr::validIPv4Infs());
     foreach(Interface inf, infs) {
-        Sender *sender = new Sender(inf.name, inf.addr, 0, dstAddr, dstPort, senderAvailable_, dict);
+        Sender *sender = new Sender(inf.name, inf.addr, 0, dstAddr, dstPort, &senderAvailable_, dict);
         sender->start();
         senders_.push_back(sender);
     }
@@ -23,8 +21,11 @@ Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dic
 }
 
 void Scheduler::run() {
-    while(true) {
-        havingPacket_->acquire();
+    while(!toStop) {
+        while(!toStop) {
+            havingPacket_.tryAcquire(1, 100);
+        }
+        if (toStop) break;
         QByteArray packet;
         {
             QMutexLocker locker(&bufferMutex_);
@@ -49,11 +50,15 @@ void Scheduler::run() {
         }
         
         QMutexLocker lock(&sendingMutex_); //the selecting and sending cannot be interrupted by sendAll()
-        senderAvailable_->acquire();
+        while(!toStop) {
+            senderAvailable_.tryAcquire(1, 100);
+        }
+        if (toStop) break;
         Sender *sender = selectSender();
 
         sender->send(packet);
     }
+    return;
 }
 
 Sender *Scheduler::selectSender() {
@@ -73,7 +78,7 @@ void Scheduler::sendAll(const QByteArray& packet){
     QMutexLocker locker(&sendingMutex_);
     foreach(Sender *sender, senders_) {
         if (sender->isAvailable()) {
-            senderAvailable_->acquire(); //use an available sender
+            senderAvailable_.acquire(); //use an available sender
             sender->send(packet);
         }
     }

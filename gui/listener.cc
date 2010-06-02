@@ -7,26 +7,34 @@
 Listener::Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, int b, int k, FlowDict *dict)
     :udpSocket_(socket), b_(b), k_(k), id_(0), timer_(0), resetTimer_(0)
 {
-    timer_ = new QTimer();
+    timer_ = new QTimer(this);
     connect(timer_, SIGNAL(timeout()), this, SLOT(keeplive()));
 
-    resetTimer_ = new QTimer();
+    resetTimer_ = new QTimer(this);
     connect(resetTimer_, SIGNAL(timeout()), this, SLOT(reset()));
 
     chunks_.resize(10000);
-    scheduler_ = new Scheduler(dstAddr, dstPort, dict);
+    scheduler_ = new Scheduler(dstAddr, dstPort, dict, this);
     connect(udpSocket_, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
     scheduler_->start();
 
     for (int i = 0; i < 5; i++) {
         keeplive();
-        usleep(500000);
+        usleep(100000);
     }
     qDebug() << "ready";
     
     timer_->start(1000);
 
     resetTimer_->start(3000);
+}
+
+Listener::~Listener() {
+    if (scheduler_) {
+        scheduler_->stop();
+        scheduler_->exit();
+        scheduler_->wait();
+    }
 }
 
 void Listener::processPendingDatagrams()

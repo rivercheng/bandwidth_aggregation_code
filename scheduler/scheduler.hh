@@ -19,6 +19,9 @@ public:
         havingPacket_->release();
     }
     void sendAll(const QByteArray& packet);
+    void toStop() {
+        stop = true;
+    }
 private:
     QQueue<QByteArray> buffer_;
     QList<Sender *>    senders_;
@@ -27,6 +30,7 @@ private:
     QSemaphore         *havingPacket_;
     QSemaphore         *senderAvailable_;
     bool    inDropMode;
+    bool    stop;
 private:
     Sender *selectSender(void);
 };

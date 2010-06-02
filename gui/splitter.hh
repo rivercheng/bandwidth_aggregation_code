@@ -10,7 +10,7 @@ class Splitter : public QObject
 {
     Q_OBJECT
 public:
-    Splitter (Config* config, FlowDict* flowdict);
+    Splitter (Config* config, FlowDict* flowdict, QObject *parent = 0);
 public slots:
     void start();
     void restart();

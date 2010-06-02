@@ -2,12 +2,11 @@
 #include "listener.hh"
 #include "config.hh"
 #include <QUdpSocket>
-Splitter::Splitter(Config* config, FlowDict* flowdict) 
-    :config(config), flowdict(flowdict)
+Splitter::Splitter(Config* config, FlowDict* flowdict, QObject *parent) 
+    :QObject(parent), config(config), flowdict(flowdict)
 {
     sock = new QUdpSocket();
     if (!sock->bind(QHostAddress::Any, config->inPort)) {
-        //cerr << "cannot bind to port " << config->inPort << endl;
         exit(1);
     }
     inPort = config->inPort;
@@ -22,7 +21,6 @@ void Splitter::restart() {
         delete sock;
         sock = new QUdpSocket();
         if (!sock->bind(QHostAddress::Any, config->inPort)) {
-            //cerr << "cannot bind to port " << config->inPort << endl;
             exit(1);
         }
         inPort = config->inPort;

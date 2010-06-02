@@ -8,10 +8,16 @@
 class FlowrateHistory : public QObject {
     Q_OBJECT
 public:
-    FlowrateHistory(int size, double initialValue = 0) {
+    FlowrateHistory(int size, double initialValue = 0, QObject *parent=0)
+    :QObject(parent)
+    {
         for (int i = 0; i < size; i++) {
             history_.enqueue(initialValue);
         }
+    }
+
+    ~FlowrateHistory() {
+        history_.clear();
     }
     
     QVector<double> toArray() const{

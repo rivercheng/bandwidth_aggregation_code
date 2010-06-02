@@ -6,8 +6,8 @@
 class Updater : public QObject {
     Q_OBJECT
 public:
-   Updater(FlowrateDict *ratedict, FlowDict *flowdict, double interval)
-       :ratedict_(ratedict), flowdict_(flowdict), interval_(interval) {;}
+   Updater(FlowrateDict *ratedict, FlowDict *flowdict, double interval, QObject *parent = 0)
+       :QObject(parent), ratedict_(ratedict), flowdict_(flowdict), interval_(interval) {;}
 public slots:
    void update() {
        foreach(Interface inf, flowdict_->keys()) {

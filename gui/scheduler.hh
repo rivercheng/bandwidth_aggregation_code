@@ -14,14 +14,17 @@ class ActiveConnection;
 class Scheduler : public QThread {
     Q_OBJECT
 public:
-    Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict);
+    Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict, QObject *parent = 0);
     void run(void);
     void send(const QByteArray & packet) {
         QMutexLocker locker(&bufferMutex_);
         buffer_.enqueue(packet);
-        havingPacket_->release();
+        havingPacket_.release();
     }
     void sendAll(const QByteArray& packet);
+    void stop() {
+        toStop = true;
+    }
 public slots:
     void updateSenderIp(QHostAddress, QHostAddress);
 private:
@@ -32,9 +35,10 @@ private:
     QList<Sender *>    senders_;
     QMutex             bufferMutex_;
     QMutex             sendingMutex_;
-    QSemaphore         *havingPacket_;
-    QSemaphore         *senderAvailable_;
+    QSemaphore         havingPacket_;
+    QSemaphore         senderAvailable_;
     bool    inDropMode;
+    bool    toStop;
     QList<ActiveConnection*>  activeConnections_;
 };
 #endif
