@@ -9,7 +9,7 @@
 #include <QTimer>
 
 //now support 4 non-loop interfaces
-const int COUNT = 4;
+const int COUNT = 8;
 
 bool runCommand(QString command, QStringList arguments) {
     cout << command << " ";
@@ -25,9 +25,52 @@ bool runCommand(QString command, QStringList arguments) {
     return res;
 }
 
+static void removeRules() {
+    QStringList tables;
+    tables << "t1" << "t2" << "t3" << "t4" << "t5" << "t6" << "t7" << "t8";
+    QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
+    int index = 0;
+    foreach(QNetworkInterface inf, infs) {
+        QNetworkInterface::InterfaceFlags iflags = inf.flags();
+        if (! iflags.testFlag(QNetworkInterface::IsLoopBack) && \
+              iflags.testFlag(QNetworkInterface::IsUp)  && \
+              iflags.testFlag(QNetworkInterface::IsRunning)) {
+
+            if (index >= COUNT) {
+                break;
+            }
+
+            //remove route tables
+            QString command = "ip";
+            QStringList argument;
+            argument << "route" << "delete" << "default" << "table" << tables[index];
+            runCommand(command, argument);
+
+            QList<QNetworkAddressEntry> entrys = inf.addressEntries();
+            foreach(QNetworkAddressEntry entry, entrys) {
+                switch (entry.ip().protocol()) {
+                    case QAbstractSocket::IPv4Protocol:
+                        //remove rules
+                        {
+                            argument.clear();
+                            argument << "rule" << "del" << "from" << entry.ip().toString();
+                            runCommand(command, argument);
+                        }
+                        break;
+                    case QAbstractSocket::IPv6Protocol:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            index++;
+        }
+    }
+}
+
 static void setRoute() {
     QStringList tables;
-    tables << "t1" << "t2" << "t3" << "t4";
+    tables << "t1" << "t2" << "t3" << "t4" << "t5" << "t6" << "t7" << "t8";
     
     QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
     int index = 0;
@@ -44,10 +87,6 @@ static void setRoute() {
             //setup route tables
             QString command = "ip";
             QStringList argument;
-            argument << "route" << "delete" << "default" << "table" << tables[index];
-            runCommand(command, argument);
-
-            argument.clear();
             argument << "route" << "add" << "default" << "dev" << inf.name();
             argument << "table" << tables[index];
             if (! runCommand(command, argument))
@@ -63,10 +102,6 @@ static void setRoute() {
                     case QAbstractSocket::IPv4Protocol:
                         //adding rules
                         {
-                            argument.clear();
-                            argument << "rule" << "del" << "from" << entry.ip().toString();
-                            runCommand(command, argument);
-
                             argument.clear();
                             argument << "rule" << "add" << "from" << entry.ip().toString();
                             argument << "table" << tables[index];
@@ -145,6 +180,7 @@ void MainWindow::startListener() {
 }
 
 void MainWindow::restartListener() {
+    removeRules();
     setRoute();
     updateInterfaceDict();
     interfaceInfo->refresh();
@@ -229,5 +265,9 @@ void MainWindow::updateK() {
     config->k = kInput->text().toInt(&ok);
 }
 
+void MainWindow::exit() {
+    removeRules();
+    emit quit();
+}
 
 

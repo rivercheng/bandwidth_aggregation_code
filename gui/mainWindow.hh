@@ -19,9 +19,7 @@ private slots:
     void startListener();
     void restartListener();
     void redraw();
-    void exit() {
-        emit quit();
-    }
+    void exit();
 signals:
     void quit();
 private:
