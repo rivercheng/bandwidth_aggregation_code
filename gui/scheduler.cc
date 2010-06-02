@@ -2,7 +2,6 @@
 #include "listAddr.hh"
 #include "../include/header.hh"
 #include "../include/gettime.hh"
-#include "connection.hh"
 #include "sender.hh"
 #include "def.hh"
 const int MAX_DELAY = 2;
@@ -17,7 +16,6 @@ Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dic
         sender->start();
         senders_.push_back(sender);
     }
-    findActiveConnections();
 }
 
 void Scheduler::run() {
@@ -83,44 +81,6 @@ void Scheduler::sendAll(const QByteArray& packet){
         }
     }
 }
-
-void Scheduler::findActiveConnections() {
-    QString service("org.freedesktop.NetworkManager"); 
-    QString path("/org/freedesktop/NetworkManager");
-    QString iface("org.freedesktop.NetworkManager");
-
-    QDBusInterface nm(service, path, iface, QDBusConnection::systemBus());
-    if (!nm.isValid()) {
-        qDebug() << "invalid interface";
-        exit(1);
-    }
-
-    QVariant activeConns = nm.property("ActiveConnections");
-    if (activeConns.isValid()) {
-        QList<QDBusObjectPath> actives = activeConns.value<QList<QDBusObjectPath> >();
-        foreach(QDBusObjectPath p, actives) {
-            ActiveConnection* activeConnection = new ActiveConnection(p);
-            connect(activeConnection, SIGNAL(IpChanged(QHostAddress, QHostAddress)), this, SLOT(updateSenderIp(QHostAddress, QHostAddress)));
-            activeConnections_.push_back(activeConnection);
-        }
-    } else {
-        qDebug() << "error in finding active connections";
-        exit(1);
-    }
-}
-
-void Scheduler::updateSenderIp(QHostAddress oldIp, QHostAddress newIp) {
-    if (oldIp == newIp) return;
-    qDebug() << "update ip";
-    foreach (Sender* sender, senders_) {
-        qDebug() << sender->srcAddr();
-        if (sender->srcAddr() == oldIp) {
-            sender->changeSource(newIp, 0);
-        }
-    }
-}
-
-
 
 
 

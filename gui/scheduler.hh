@@ -12,7 +12,6 @@ class QTimer;
 class Sender;
 class ActiveConnection;
 class Scheduler : public QThread {
-    Q_OBJECT
 public:
     Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict, QObject *parent = 0);
     void run(void);
@@ -25,11 +24,8 @@ public:
     void stop() {
         toStop = true;
     }
-public slots:
-    void updateSenderIp(QHostAddress, QHostAddress);
 private:
     Sender *selectSender(void);
-    void findActiveConnections();
 private:
     QQueue<QByteArray> buffer_;
     QList<Sender *>    senders_;
