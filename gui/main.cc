@@ -19,7 +19,6 @@ QTextStream cout(stdout);
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
-    QStringList args = app.arguments();
 
     Config config;
     config.inPort = 10000;

@@ -5,7 +5,6 @@
 InterfaceInfo::InterfaceInfo(FlowrateDict *ratedict, double interval, QWidget *parent)
     :QVBoxLayout(parent), ratedict(ratedict), interval(interval), graph(0), infLayout(0)
 {
-    qDebug() << graph;
     init();
 }
 
