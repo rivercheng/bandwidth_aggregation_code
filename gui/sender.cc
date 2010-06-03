@@ -52,6 +52,9 @@ bool Sender::trySending() {
         usleep(100);
         res = sock_->writeDatagram(packet_, dstAddr_, dstPort_);
     }
+    if (datalink_type_ == DLT_EN10MB || datalink_type_ == DLT_IEEE802_11) {
+        return true;
+    }
     struct pcap_pkthdr header;
     const u_char *p = pcap_next(handle_, &header);
     if (p && pcapPacketID(p) == id_) {
