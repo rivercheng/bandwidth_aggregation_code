@@ -29,13 +29,16 @@ void MainWindow::createRecordingFile() {
     QString filename = "incoming_record_" + QDateTime::currentDateTime().toString("yy:MM:dd:hh:mm:ss");
     QFile *rf = new QFile(filename);
     if (! rf->open(QIODevice::WriteOnly)) {
-        qDebug() << "cannot open file " << filename;
+        errMsg.showMessage(QString("cannot open recording file"));
         emit quit();
     }
     config->rf =  rf;
 }
 
 void MainWindow::startDecoder() {
+    if (config->outAddr.isNull()) {
+        return;
+    }
     errMsg.showMessage(QString("to listen at %1 and relay to %2:%3 with b:%4 and k:%5. Delay is %6 second.").arg(config->inPort).arg(config->outAddr.toString()).arg(config->outPort).arg(config->b).arg(config->k).arg(config->delay));
     if (checkBox->isChecked()) {
         createRecordingFile();
@@ -44,8 +47,8 @@ void MainWindow::startDecoder() {
     sock = new QUdpSocket();
     if (!sock->bind(QHostAddress::Any, config->inPort)) {
         errMsg.showMessage(QString("Unable to bind to port %1").arg(config->inPort));
-        qDebug() << "unable to bind to port" << config->inPort;
-        emit quit();
+        //qDebug() << "unable to bind to port" << config->inPort;
+        //emit quit();
     }
     inPort = config->inPort;
     decoder = new UdpDecoder(sock, config->outAddr, config->outPort, config->b, config->k, config->delay, config->rf);
@@ -55,6 +58,9 @@ void MainWindow::startDecoder() {
 }
 
 void MainWindow::restartDecoder() {
+    if (config->outAddr.isNull()) {
+        return;
+    }
     errMsg.showMessage(QString("to listen at %1 and relay to %2:%3 with b:%4 and k:%5. Delay is %6 second.").arg(config->inPort).arg(config->outAddr.toString()).arg(config->outPort).arg(config->b).arg(config->k).arg(config->delay));
     if (config->rf) {
         config->rf->close();
@@ -71,8 +77,8 @@ void MainWindow::restartDecoder() {
         sock = new QUdpSocket();
         if (!sock->bind(QHostAddress::Any, config->inPort)) {
             errMsg.showMessage(QString("Unable to bind to port %1").arg(config->inPort));
-            qDebug() << "unable to bind to port" << config->inPort;
-            emit quit();
+            //qDebug() << "unable to bind to port" << config->inPort;
+            //emit quit();
         }
         inPort = config->inPort;
         delete decoder;
@@ -81,7 +87,7 @@ void MainWindow::restartDecoder() {
 }
 
 void MainWindow::setupConfigInput(QVBoxLayout *layout) {
-    QIntValidator *portValid = new QIntValidator(0, 255, this);
+    QIntValidator *portValid = new QIntValidator(0, 65535, this);
 
     QHBoxLayout *listenPortLayout = new QHBoxLayout();
     listenPortInput = new QLineEdit(QString("%1").arg(config->inPort));
@@ -157,6 +163,9 @@ void MainWindow::updateOutPort() {
 
 void MainWindow::updateOutAddr() {
     config->outAddr = QHostAddress(outAddrInput->text());
+    if (config->outAddr.isNull()) {
+        errMsg.showMessage(QString("%1 is not a valid IPv4 address").arg(outAddrInput->text()));
+    }
 }
 
 void MainWindow::updateB() {

@@ -38,6 +38,7 @@ private:
     QLineEdit *kInput;
     QPushButton *startButton;
     Splitter  *splitter;
+    QErrorMessage errMsg;
 };
 
 #endif

@@ -173,6 +173,9 @@ MainWindow::MainWindow(Config *config)
 
 
 void MainWindow::startListener() {
+    if (config->outAddr.isNull()) {
+        return;
+    }
     splitter->start();
     startButton->setText("Restart");
     disconnect(startButton, SIGNAL(clicked()), this, SLOT(startListener()));
@@ -180,6 +183,9 @@ void MainWindow::startListener() {
 }
 
 void MainWindow::restartListener() {
+    if (config->outAddr.isNull()) {
+        return;
+    }
     removeRules();
     setRoute();
     updateInterfaceDict();
@@ -194,7 +200,7 @@ void MainWindow::redraw() {
 }
 
 void MainWindow::setupConfigInput(QVBoxLayout *layout) {
-    QIntValidator *portValid = new QIntValidator(0, 255, this);
+    QIntValidator *portValid = new QIntValidator(0, 65535, this);
 
     QHBoxLayout *listenPortLayout = new QHBoxLayout();
     listenPortInput = new QLineEdit(QString("%1").arg(config->inPort));
@@ -253,6 +259,9 @@ void MainWindow::updateOutPort() {
 
 void MainWindow::updateOutAddr() {
     config->outAddr = QHostAddress(outAddrInput->text());
+    if (config->outAddr.isNull()) {
+        errMsg.showMessage(QString("%1 is not a valid IPv4 address").arg(outAddrInput->text()));
+    }
 }
 
 void MainWindow::updateB() {
