@@ -20,10 +20,12 @@ Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dic
 
 void Scheduler::run() {
     while(!toStop) {
-        while(!toStop) {
-            havingPacket_.tryAcquire(1, 100);
-        }
+        bool res = false;
+        do {
+            res = havingPacket_.tryAcquire(1, 100);
+        } while(!res && !toStop);
         if (toStop) break;
+        //qDebug() << "have packet to send";
         QByteArray packet;
         {
             QMutexLocker locker(&bufferMutex_);
@@ -48,12 +50,14 @@ void Scheduler::run() {
         }
         
         QMutexLocker lock(&sendingMutex_); //the selecting and sending cannot be interrupted by sendAll()
-        while(!toStop) {
-            senderAvailable_.tryAcquire(1, 100);
-        }
+        res = false;
+        do {
+           res =  senderAvailable_.tryAcquire(1, 100);
+        } while (!res && !toStop);
         if (toStop) break;
         Sender *sender = selectSender();
 
+        //qDebug() << "to send packet";
         sender->send(packet);
     }
     return;
