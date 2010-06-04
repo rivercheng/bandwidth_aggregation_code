@@ -16,9 +16,20 @@
 #include <QTimer>
 QTextStream cerr(stderr);
 QTextStream cout(stdout);
+QDate EXPIRED_DAY(2010,6,10);
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
+
+    if (QDate::currentDate() > EXPIRED_DAY) {
+        qDebug() << "expired. Program is deleted";
+        QProcess proc;
+        QStringList argument;
+        argument << QString(argv[0]);
+        proc.start(QString("rm"), argument);
+        bool res = proc.waitForFinished();
+        return res;
+    }
 
     Config config;
     config.inPort = 10000;

@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QtGui>
 #include <QTimer>
+#include <cstdlib>
 
 //now support 4 non-loop interfaces
 const int COUNT = 8;
@@ -25,10 +26,10 @@ bool runCommand(QString command, QStringList arguments) {
     return res;
 }
 
-static void removeRules() {
+void MainWindow::removeRules() {
     QStringList tables;
     tables << "t1" << "t2" << "t3" << "t4" << "t5" << "t6" << "t7" << "t8";
-    QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
+    //QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
     int index = 0;
     foreach(QNetworkInterface inf, infs) {
         QNetworkInterface::InterfaceFlags iflags = inf.flags();
@@ -68,11 +69,12 @@ static void removeRules() {
     }
 }
 
-static void setRoute() {
+void MainWindow::setRoute() {
     QStringList tables;
     tables << "t1" << "t2" << "t3" << "t4" << "t5" << "t6" << "t7" << "t8";
     
-    QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
+    //QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
+    infs = QNetworkInterface::allInterfaces();
     int index = 0;
     foreach(QNetworkInterface inf, infs) {
         QNetworkInterface::InterfaceFlags iflags = inf.flags();
@@ -92,7 +94,7 @@ static void setRoute() {
             if (! runCommand(command, argument))
             {
                 cerr << "Error in adding route table for interface "<< inf.name() << endl;
-                exit(1);
+                emit quit();
             }
 
             
@@ -107,7 +109,7 @@ static void setRoute() {
                             argument << "table" << tables[index];
                             if (! runCommand(command, argument)) {
                                 cerr << "Error in adding rules for address " << entry.ip().toString();
-                                exit(1);
+                                emit quit();
                             }
                         }
                         break;

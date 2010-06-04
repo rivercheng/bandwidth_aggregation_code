@@ -25,9 +25,11 @@ signals:
 private:
     void updateInterfaceDict();
     void setupConfigInput(QVBoxLayout *layout);
+    void setRoute();
+    void removeRules();
 private:
     Config *config;
-    QList<Interface> infs;
+    //QList<Interface> infs;
     FlowrateDict ratedict;
     FlowDict     flowdict;
     InterfaceInfo *interfaceInfo;
@@ -39,6 +41,7 @@ private:
     QPushButton *startButton;
     Splitter  *splitter;
     QErrorMessage errMsg;
+    QList<QNetworkInterface> infs;
 };
 
 #endif

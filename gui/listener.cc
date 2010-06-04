@@ -18,7 +18,7 @@ Listener::Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, in
     connect(udpSocket_, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
     scheduler_->start();
 
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         keeplive();
         usleep(100000);
     }
