@@ -13,7 +13,7 @@ QTextStream cout(stdout, QIODevice::WriteOnly);
 QTextStream cerr(stderr, QIODevice::WriteOnly);
 
 void usage(QStringList args) {
-    cerr << "Usage: " << args[0] << " <outAddr> <outPort> [packet size = 1360] [t = 10s]" << endl;
+    cerr << "Usage: " << args[0] << " <outAddr> <outPort> <fromAddr> [packet size = 1360] [t = 10s]" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -21,30 +21,38 @@ int main(int argc, char *argv[]) {
 
     //========================Parse the command line arguments==========================
     QStringList args = app.arguments();
-    if (args.size() < 3) {
+    if (args.size() < 4) {
         usage(args);
         return 1;
     }
+    //Parse the fromAddr. Which source IP address to use
+    QHostAddress fromAddr = QHostAddress(args[3]);
+    if (fromAddr.isNull()) {
+        usage(args);
+        cerr << args[3] << " is not a valid IP address " << endl;
+        return 1;
+    }
+
     //Parse the packet size. By default 1360, used by TS video streaming format.
     int packetSize = 1360;
-    if (args.size() > 3) {
+    if (args.size() > 4) {
         bool ok;
-        packetSize = args[3].toInt(&ok);
+        packetSize = args[4].toInt(&ok);
         if (!ok) {
             usage(args);
-            cerr << args[3] << " is not a valid number" << endl;
+            cerr << args[4] << " is not a valid number" << endl;
             return 1;
         }
     }
 
     //Parse the duration. By default 10 seconds.
     double duration = 10.;
-    if (args.size() > 4) {
+    if (args.size() > 5) {
         bool ok;
-        duration = args[4].toDouble(&ok);
+        duration = args[5].toDouble(&ok);
         if (!ok) {
             usage(args);
-            cerr << args[4] << " is not a valid number" << endl;
+            cerr << args[5] << " is not a valid number" << endl;
             return 1;
         }
     }
@@ -88,9 +96,16 @@ int main(int argc, char *argv[]) {
     QList<CheckSocket *> socks;
     
     foreach(Interface inf, infs) {
-        CheckSocket *sock = new CheckSocket(inf.name, inf.addr, 0, outAddr, outPort);
-        qDebug() << inf.name << " " << inf.addr.toString() <<" is used";
-        socks.push_back(sock);
+        if (inf.addr == fromAddr) {
+            CheckSocket *sock = new CheckSocket(inf.name, inf.addr, 0, outAddr, outPort);
+            qDebug() << inf.name << " " << inf.addr.toString() <<" is used";
+            socks.push_back(sock);
+            break;
+        }
+    }
+    if (socks.empty()) {
+        qDebug() << argv[3] << " is not an available address.";
+        return 1;
     }
     //===================================================================================
     //
