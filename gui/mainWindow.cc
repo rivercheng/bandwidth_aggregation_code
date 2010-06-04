@@ -4,130 +4,11 @@
 #include "mainWindow.hh"
 #include "splitter.hh"
 #include "interfaceInfo.hh"
+#include "routeProcessor.hh"
 #include <QApplication>
 #include <QtGui>
 #include <QTimer>
 #include <cstdlib>
-
-//now support 4 non-loop interfaces
-const int COUNT = 8;
-
-bool runCommand(QString command, QStringList arguments) {
-    cout << command << " ";
-    foreach (QString argument, arguments) {
-        cout << argument << " ";
-    }
-    cout << endl;
-            
-    QProcess proc;
-    proc.start(command, arguments);
-    bool res = proc.waitForFinished();
-    cout << proc.readAllStandardError();
-    return res;
-}
-
-MainWindow::~MainWindow() {
-    removeRules();
-}
-
-void MainWindow::removeRules() {
-    QStringList tables;
-    tables << "t1" << "t2" << "t3" << "t4" << "t5" << "t6" << "t7" << "t8";
-    //QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
-    int index = 0;
-    foreach(QNetworkInterface inf, infs) {
-        QNetworkInterface::InterfaceFlags iflags = inf.flags();
-        if (! iflags.testFlag(QNetworkInterface::IsLoopBack) && \
-              iflags.testFlag(QNetworkInterface::IsUp)  && \
-              iflags.testFlag(QNetworkInterface::IsRunning)) {
-
-            if (index >= COUNT) {
-                break;
-            }
-
-            //remove route tables
-            QString command = "ip";
-            QStringList argument;
-            argument << "route" << "delete" << "default" << "table" << tables[index];
-            runCommand(command, argument);
-
-            QList<QNetworkAddressEntry> entrys = inf.addressEntries();
-            foreach(QNetworkAddressEntry entry, entrys) {
-                switch (entry.ip().protocol()) {
-                    case QAbstractSocket::IPv4Protocol:
-                        //remove rules
-                        {
-                            argument.clear();
-                            argument << "rule" << "del" << "from" << entry.ip().toString();
-                            runCommand(command, argument);
-                        }
-                        break;
-                    case QAbstractSocket::IPv6Protocol:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            index++;
-        }
-    }
-}
-
-void MainWindow::setRoute() {
-    QStringList tables;
-    tables << "t1" << "t2" << "t3" << "t4" << "t5" << "t6" << "t7" << "t8";
-    
-    //QList<QNetworkInterface> infs = QNetworkInterface::allInterfaces();
-    infs = QNetworkInterface::allInterfaces();
-    int index = 0;
-    foreach(QNetworkInterface inf, infs) {
-        QNetworkInterface::InterfaceFlags iflags = inf.flags();
-        if (! iflags.testFlag(QNetworkInterface::IsLoopBack) && \
-              iflags.testFlag(QNetworkInterface::IsUp)  && \
-              iflags.testFlag(QNetworkInterface::IsRunning)) {
-
-            if (index >= COUNT) {
-                break;
-            }
-
-            //setup route tables
-            QString command = "ip";
-            QStringList argument;
-            argument << "route" << "add" << "default" << "dev" << inf.name();
-            argument << "table" << tables[index];
-            if (! runCommand(command, argument))
-            {
-                cerr << "Error in adding route table for interface "<< inf.name() << endl;
-                emit quit();
-            }
-
-            
-            QList<QNetworkAddressEntry> entrys = inf.addressEntries();
-            foreach(QNetworkAddressEntry entry, entrys) {
-                switch (entry.ip().protocol()) {
-                    case QAbstractSocket::IPv4Protocol:
-                        //adding rules
-                        {
-                            argument.clear();
-                            argument << "rule" << "add" << "from" << entry.ip().toString();
-                            argument << "table" << tables[index];
-                            if (! runCommand(command, argument)) {
-                                cerr << "Error in adding rules for address " << entry.ip().toString();
-                                emit quit();
-                            }
-                        }
-                        break;
-                    case QAbstractSocket::IPv6Protocol:
-                        break;
-                    default:
-                        break;
-                }
-            }
-            index++;
-        }
-    }
-}
-
 
 void MainWindow::updateInterfaceDict()
 {
@@ -146,7 +27,8 @@ MainWindow::MainWindow(Config *config)
     :config(config), interfaceInfo(0), listenPortInput(0), outAddrInput(0), bInput(0),kInput(0), startButton(0), splitter(0) 
 {
     double interval = 1;
-    setRoute();
+
+    routeP = new RouteProcessor(this);
     updateInterfaceDict();
     Updater *updater = new Updater(&ratedict, &flowdict, interval, this);
     
@@ -192,8 +74,8 @@ void MainWindow::restartListener() {
     if (config->outAddr.isNull()) {
         return;
     }
-    removeRules();
-    setRoute();
+    delete routeP;
+    routeP = new RouteProcessor(this);
     updateInterfaceDict();
     interfaceInfo->refresh();
     splitter->restart();

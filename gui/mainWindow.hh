@@ -6,11 +6,11 @@
 class Config;
 class Splitter;
 class InterfaceInfo;
+class RouteProcessor;
 class MainWindow : public QWidget {
     Q_OBJECT
 public:
     MainWindow(Config *config);
-    ~MainWindow();
 private slots:
     void updateListenPort();
     void updateOutPort();
@@ -43,6 +43,7 @@ private:
     Splitter  *splitter;
     QErrorMessage errMsg;
     QList<QNetworkInterface> infs;
+    RouteProcessor *routeP;
 };
 
 #endif

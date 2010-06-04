@@ -6,16 +6,17 @@
 
 class RouteProcessor : public QObject {
 public:
-    RouteProcessor();
+    RouteProcessor(QObject *parent = 0);
     ~RouteProcessor();
 private:
     struct InterfaceInfo {
         QString name;
         QHostAddress ip;
         QHostAddress netmask;
+        bool         isPPP;
         QHostAddress gateway;
-        InterfaceInfo(QString name, QHostAddress ip, QHostAddress netmask)
-            :name(name), ip(ip), netmask(netmask) {
+        InterfaceInfo(QString name, QHostAddress ip, QHostAddress netmask, bool isPPP)
+            :name(name), ip(ip), netmask(netmask), isPPP(isPPP) {
             gateway = QHostAddress((ip.toIPv4Address() & netmask.toIPv4Address())+1);
         }
     };

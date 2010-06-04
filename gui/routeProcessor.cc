@@ -2,7 +2,9 @@
 #include <QNetworkInterface>
 #include <QProcess>
 
-RouteProcessor::RouteProcessor() {
+RouteProcessor::RouteProcessor(QObject *parent) 
+    :QObject(parent)
+{
     tables << "t1" << "t2" << "t3" << "t4" << "t5" << "t6" << "t7" << "t8";
     findAllValidDevices();
     setRouteAndRules();
@@ -25,7 +27,8 @@ void RouteProcessor::findAllValidDevices() {
             foreach(QNetworkAddressEntry entry, addressEntries) {
 
                 if (entry.ip().toIPv4Address() != 0) {
-                    InterfaceInfo info(inf.name(), entry.ip(), entry.netmask());
+                    bool isPPP = iflags.testFlag(QNetworkInterface::IsPointToPoint);
+                    InterfaceInfo info(inf.name(), entry.ip(), entry.netmask(), isPPP);
                     infos.push_back(info);
                 }
             }
@@ -38,7 +41,11 @@ void RouteProcessor::setRouteAndRules() {
     foreach(InterfaceInfo info, infos) {
         QString command = "ip";
         QStringList argument;
-        argument << "route" << "add" << "default" << "via" << info.gateway.toString() << "dev" << info.name;
+        if (info.isPPP) {
+            argument << "route" << "add" << "default" << "dev" << info.name;
+        } else {
+            argument << "route" << "add" << "default" << "via" << info.gateway.toString() << "dev" << info.name;
+        }
         argument << "table" << tables[index];
         if (!runCommand(command, argument)) {
              qDebug() << "Error in adding routing table for interface " << info.name;
