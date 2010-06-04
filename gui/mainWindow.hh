@@ -11,18 +11,20 @@ class MainWindow : public QWidget {
     Q_OBJECT
 public:
     MainWindow(Config *config);
+public slots:
+    void startListener();
 private slots:
     void updateListenPort();
     void updateOutPort();
     void updateOutAddr();
     void updateB();
     void updateK();
-    void startListener();
     void restartListener();
     void redraw();
     void exit();
 signals:
     void quit();
+    void restart();
 private:
     void updateInterfaceDict();
     void setupConfigInput(QVBoxLayout *layout);

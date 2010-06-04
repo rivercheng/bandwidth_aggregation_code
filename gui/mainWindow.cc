@@ -58,7 +58,6 @@ MainWindow::MainWindow(Config *config)
     timer->start(interval*1000);
 }
 
-
 void MainWindow::startListener() {
     if (config->outAddr.isNull()) {
         return;
@@ -74,11 +73,14 @@ void MainWindow::restartListener() {
     if (config->outAddr.isNull()) {
         return;
     }
+    emit restart();
+    /*
     delete routeP;
     routeP = new RouteProcessor(this);
     updateInterfaceDict();
     interfaceInfo->refresh();
     splitter->restart();
+    */
 }
 
 void MainWindow::redraw() {

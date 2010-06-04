@@ -5,7 +5,7 @@
 Splitter::Splitter(Config* config, FlowDict* flowdict, QObject *parent) 
     :QObject(parent), config(config), flowdict(flowdict)
 {
-    sock = new QUdpSocket();
+    sock = new QUdpSocket(this);
     if (!sock->bind(QHostAddress::Any, config->inPort)) {
         qDebug() << "Cannot listen at port " << config->inPort;
         exit(1);

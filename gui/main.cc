@@ -1,19 +1,11 @@
 #include "config.hh"
-#include "listener.hh"
 #include "def.hh"
-#include "flowrategraph.hh"
-#include "listAddr.hh"
-#include "updater.hh"
-#include "mainWindow.hh"
-#include "splitter.hh"
+#include "looper.hh"
 #include <QApplication>
 #include <QtGui>
-#include <QStringList>
 #include <QTextStream>
 #include <QUdpSocket>
-#include <QDateTime>
-#include <QFile>
-#include <QTimer>
+#include <QDate>
 QTextStream cerr(stderr);
 QTextStream cout(stdout);
 QDate EXPIRED_DAY(2010,6,10);
@@ -37,13 +29,10 @@ int main(int argc, char* argv[]) {
     config.b = 4;
     config.k = 30;
     config.outAddr = QHostAddress("137.132.145.225");
-    
-    
-    MainWindow mainWindow(&config); 
-    mainWindow.setWindowTitle("Multiple Channels Scheduler");
-    mainWindow.show();
-    QObject::connect(&mainWindow, SIGNAL(quit()), &app, SLOT(quit()));
 
+    Looper looper(&config);
+    QObject::connect(&looper, SIGNAL(quit()), &app, SLOT(quit()));
+    
     app.exec();
     return 0;
 }

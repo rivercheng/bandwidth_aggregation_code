@@ -54,7 +54,6 @@ void UdpDecoder::recording(PacketID id, int sec, int usec) {
 void UdpDecoder::processPendingDatagrams()
 {
     QTextStream cout(stdout);
-    reseted_ = false;
     while (udpSocket_->hasPendingDatagrams()) {
         QByteArray datagram;
         datagram.resize(udpSocket_->pendingDatagramSize());
@@ -67,6 +66,7 @@ void UdpDecoder::processPendingDatagrams()
             reset();
             continue; //ignore empty packets
         } else {
+            reseted_ = false;
             timer_->start(3000);
         }
 
@@ -124,6 +124,7 @@ void UdpDecoder::processPendingDatagrams()
                 // TODO
             } else {
                 PreciseTime d(0, int(delay_*1000));
+                //qDebug() << "delay " << int(delay_*1000);
                 PreciseTime toSendTime = initialTime_ + d + sentTime - firstSentTime_; 
                 insertPacket(pid, dewrapped, toSendTime);
             }
