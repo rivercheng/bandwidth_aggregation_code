@@ -26,6 +26,10 @@ bool runCommand(QString command, QStringList arguments) {
     return res;
 }
 
+MainWindow::~MainWindow() {
+    removeRules();
+}
+
 void MainWindow::removeRules() {
     QStringList tables;
     tables << "t1" << "t2" << "t3" << "t4" << "t5" << "t6" << "t7" << "t8";
@@ -164,7 +168,6 @@ MainWindow::MainWindow(Config *config)
     buttonLayout->addWidget(exitButton);
     layout->addLayout(buttonLayout);
     
-    splitter = new Splitter(config, &flowdict, this);
 
     QTimer *timer = new QTimer(this);
     QObject::connect(timer, SIGNAL(timeout()), updater, SLOT(update()));
@@ -178,6 +181,7 @@ void MainWindow::startListener() {
     if (config->outAddr.isNull()) {
         return;
     }
+    splitter = new Splitter(config, &flowdict, this);
     splitter->start();
     startButton->setText("Restart");
     disconnect(startButton, SIGNAL(clicked()), this, SLOT(startListener()));
@@ -277,7 +281,6 @@ void MainWindow::updateK() {
 }
 
 void MainWindow::exit() {
-    removeRules();
     emit quit();
 }
 

@@ -10,6 +10,7 @@ class MainWindow : public QWidget {
     Q_OBJECT
 public:
     MainWindow(Config *config);
+    ~MainWindow();
 private slots:
     void updateListenPort();
     void updateOutPort();
