@@ -54,12 +54,12 @@ void Device::capture() {
     if (p) {
         p += 42;
         QByteArray pdata((const char*)p, 14);
-        qDebug() << *(p++);
-        qDebug() << *(p++);
-        qDebug() << *(p++);
-        qDebug() << *(p++);
-        PacketID id = packetInfo(pdata).id;
-        qDebug() << "captured " << id;
+        //qDebug() << *(p++);
+        //qDebug() << *(p++);
+        //qDebug() << *(p++);
+        //qDebug() << *(p++);
+        //PacketID id = packetInfo(pdata).id;
+        //qDebug() << "captured " << id;
         emit received();
     }
 }

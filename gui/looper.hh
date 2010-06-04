@@ -17,7 +17,6 @@ public slots:
         delete mainWindow;
         mainWindow = 0;
         init();
-        mainWindow->startListener();
     }
     void exit() {
         emit quit();
@@ -31,6 +30,7 @@ private:
         mainWindow->show();
         QObject::connect(mainWindow, SIGNAL(quit()), this, SLOT(exit()));
         QObject::connect(mainWindow, SIGNAL(restart()), this, SLOT(restart()));
+        mainWindow->startListener();
     }
 private:
     Config *config;
