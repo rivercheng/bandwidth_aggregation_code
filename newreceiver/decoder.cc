@@ -78,6 +78,17 @@ void UdpDecoder::processPendingDatagrams()
           if (records_ != 0) {
               recording(pid, sec, usec);
           }
+          //filter out illegal packet
+          if (sec <= 0 || usec <= 0) {
+              qDebug() << "invalid packet";
+              continue;
+          }
+          PreciseTime currTime = PreciseTime::getTime();
+          double diff_sec = double(currTime.sec) - double(sec);
+          if (diff_sec > 10 || diff_sec < -10) {
+              qDebug() << "Invalid packet or packet with invalid timestamp.";
+              continue;
+          }
           //qDebug() << udpSocket_->localPort() << " received " << pid << " at " << sec << " " << usec;
           
           if (pid < 0) { //FEC packet
@@ -85,8 +96,6 @@ void UdpDecoder::processPendingDatagrams()
           } else {
             cid = FECChunk::packetID2chunkID(pid, b_, k_);
           }
-
-          PreciseTime currTime = PreciseTime::getTime();
 
           if (initialTime_.sec == 0 && initialTime_.usec == 0) { //First packet
               initialTime_ = currTime; 
