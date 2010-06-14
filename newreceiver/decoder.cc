@@ -6,19 +6,19 @@
 #include "decoder.hh"
 #include "header.hh"
 UdpDecoder::UdpDecoder(QUdpSocket *socket, QHostAddress outAddr, quint16 outPort, \
-        int b, int k, unsigned int delay, QFile *f)
+        int b, int k, double delay, QFile *f)
     :udpSocket_(socket), outAddr_(outAddr), outPort_(outPort), \
          b_(b), k_(k), records_(f), \
          nextIDToSend_(0), lastIDToSend_(0), \
          initialTime_(0,0), firstSentTime_(0,0), \
-         firstToSendTime_(0,0), delay_(delay), timer_(0), allSent_(true) {
+         firstToSendTime_(0,0), delay_(delay), timer_(0), allSent_(true), reseted_(true) {
 
     connect(udpSocket_, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
     
     chunks_.resize(10000);
     packetBuffer_.resize(10000);
 
-    timer_ = new QTimer();
+    timer_ = new QTimer(this);
     connect(timer_, SIGNAL(timeout()), this, SLOT(reset()));
     timer_->start(3000);
 
@@ -40,6 +40,7 @@ void UdpDecoder::reset() {
     firstToSendTime_.sec = 0;
     firstToSendTime_.usec = 0;
     qDebug() << "reset";
+    reseted_ = true;
 }
 
 void UdpDecoder::recording(PacketID id, int sec, int usec) {
@@ -61,8 +62,10 @@ void UdpDecoder::processPendingDatagrams()
 
         if (dewrap(datagram).isEmpty()) {
             qDebug() << "heartbeat from " << srcAddr.toString() << ":" << srcPort;
+            reset();
             continue; //ignore empty packets
         } else {
+            reseted_ = false;
             timer_->start(3000);
         }
 
@@ -128,7 +131,7 @@ void UdpDecoder::processPendingDatagrams()
                 // All packets are received.
                 // TODO
             } else {
-                PreciseTime d(0, delay_*1000);
+                PreciseTime d(0, int(delay_*1000));
                 PreciseTime toSendTime = initialTime_ + d + sentTime - firstSentTime_; 
                 insertPacket(pid, dewrapped, toSendTime);
             }

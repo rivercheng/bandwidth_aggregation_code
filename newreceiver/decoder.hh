@@ -14,7 +14,7 @@ class UdpDecoder : public QObject {
     Q_OBJECT
 public:
     UdpDecoder(QUdpSocket *socket, QHostAddress outAddr, \
-           quint16 outPort, int b, int k, unsigned int delay, QFile *f=0);
+           quint16 outPort, int b, int k, double delay, QFile *f=0);
 private slots:
     void processPendingDatagrams();
     void sendPacket();
@@ -46,8 +46,9 @@ private:
     PreciseTime initialTime_;
     PreciseTime firstSentTime_;
     PreciseTime firstToSendTime_;
-    unsigned int delay_;
+    double delay_;
     QTimer *timer_;
     bool   allSent_;
+    bool   reseted_;
 };
 #endif
