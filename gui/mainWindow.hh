@@ -19,6 +19,8 @@ private slots:
     void updateOutAddr();
     void updateB();
     void updateK();
+    void updateMax();
+    void updateMin();
     void restartListener();
     void redraw();
     void exit();
@@ -41,6 +43,8 @@ private:
     QLineEdit *outPortInput;
     QLineEdit *bInput; 
     QLineEdit *kInput;
+    QLineEdit *maxInput;
+    QLineEdit *minInput;
     QPushButton *startButton;
     Splitter  *splitter;
     QErrorMessage errMsg;

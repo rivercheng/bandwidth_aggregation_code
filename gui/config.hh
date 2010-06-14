@@ -8,6 +8,8 @@ struct Config{
     quint16 inPort;
     quint16 outPort;
     QHostAddress outAddr;
+    int max_delay;
+    int min_delay;
 };
 
 #endif

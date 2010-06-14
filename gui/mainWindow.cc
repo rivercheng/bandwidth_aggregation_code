@@ -2,12 +2,13 @@
 #include "updater.hh"
 #include "flowrategraph.hh"
 #include "mainWindow.hh"
-#include "splitter.hh"
 #include "interfaceInfo.hh"
 #include "routeProcessor.hh"
+#include "listener.hh"
 #include <QApplication>
 #include <QtGui>
 #include <QTimer>
+#include <QUdpSocket>
 #include <cstdlib>
 
 void MainWindow::updateInterfaceDict()
@@ -62,8 +63,13 @@ void MainWindow::startListener() {
     if (config->outAddr.isNull()) {
         return;
     }
-    splitter = new Splitter(config, &flowdict, this);
-    splitter->start();
+    QUdpSocket *sock = new QUdpSocket(this);
+    if (!sock->bind(QHostAddress::Any, config->inPort)) {
+        errMsg.showMessage(QString("Cannot listen at port %1").arg(config->inPort));
+        return;
+    }
+    Listener *listener = new Listener(sock, config->outAddr, config->outPort, config->b, config->k, &flowdict, config->max_delay, config->min_delay, this);
+    (void) listener;
     startButton->setText("Restart");
     disconnect(startButton, SIGNAL(clicked()), this, SLOT(startListener()));
     connect(startButton, SIGNAL(clicked()), this, SLOT(restartListener()));
@@ -74,13 +80,6 @@ void MainWindow::restartListener() {
         return;
     }
     emit restart();
-    /*
-    delete routeP;
-    routeP = new RouteProcessor(this);
-    updateInterfaceDict();
-    interfaceInfo->refresh();
-    splitter->restart();
-    */
 }
 
 void MainWindow::redraw() {
@@ -135,6 +134,30 @@ void MainWindow::setupConfigInput(QVBoxLayout *layout) {
     fecInfoLayout->addWidget(bkLabel2);
     fecInfoLayout->addWidget(kInput);
     layout->addLayout(fecInfoLayout);
+
+    QIntValidator *validDelay = new QIntValidator(this);
+    validDelay->setBottom(0);
+    
+    QHBoxLayout *delayLayout1 = new QHBoxLayout();
+    QHBoxLayout *delayLayout2 = new QHBoxLayout();
+    QLabel *delayLabel1 = new QLabel("If packet is delayed > ");
+    QLabel *delayLabel2 = new QLabel("seconds,");
+    QLabel *delayLabel3 = new QLabel("drop packets until delay < ");
+    QLabel *delayLabel4 = new QLabel("seconds.");
+    maxInput = new QLineEdit(QString("%1").arg(config->max_delay));
+    minInput = new QLineEdit(QString("%1").arg(config->min_delay));
+    maxInput->setValidator(validDelay);
+    minInput->setValidator(validDelay);
+    connect(maxInput, SIGNAL(editingFinished()), this, SLOT(updateMax()));
+    connect(minInput, SIGNAL(editingFinished()), this, SLOT(updateMin()));
+    delayLayout1->addWidget(delayLabel1);
+    delayLayout1->addWidget(maxInput);
+    delayLayout1->addWidget(delayLabel2);
+    delayLayout2->addWidget(delayLabel3);
+    delayLayout2->addWidget(minInput);
+    delayLayout2->addWidget(delayLabel4);
+    layout->addLayout(delayLayout1);
+    layout->addLayout(delayLayout2);
 }
 
 void MainWindow::updateListenPort() {
@@ -162,6 +185,16 @@ void MainWindow::updateB() {
 void MainWindow::updateK() {
     bool ok;
     config->k = kInput->text().toInt(&ok);
+}
+
+void MainWindow::updateMax() {
+    bool ok;
+    config->max_delay = maxInput->text().toInt(&ok);
+}
+
+void MainWindow::updateMin() {
+    bool ok;
+    config->min_delay = minInput->text().toInt(&ok);
 }
 
 void MainWindow::exit() {

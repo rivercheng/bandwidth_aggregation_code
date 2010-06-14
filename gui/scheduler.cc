@@ -4,11 +4,9 @@
 #include "../include/gettime.hh"
 #include "sender.hh"
 #include "def.hh"
-const int MAX_DELAY = 2;
-const int MIN_DELAY = 1; 
 
-Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict, QObject *parent) 
-    :QThread(parent), inDropMode(false), toStop(false)
+Scheduler::Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict, int max_delay, int min_delay, QObject *parent) 
+    :QThread(parent), inDropMode(false), toStop(false), max_delay(max_delay), min_delay(min_delay)
 {
     QList<Interface> infs(ListAddr::validIPv4Infs());
     foreach(Interface inf, infs) {
@@ -37,13 +35,13 @@ void Scheduler::run() {
         PacketInfo info = packetInfo(packet);
         PreciseTime diff =  PreciseTime::getTime() - PreciseTime(info.sec, info.usec);
         if (inDropMode) {
-            if (diff > PreciseTime(MIN_DELAY, 0)) {
+            if (diff > PreciseTime(min_delay, 0)) {
                 continue;
             } else {
                 inDropMode = false;
             }
         } else {
-            if (diff > PreciseTime(MAX_DELAY, 0)) {
+            if (diff > PreciseTime(max_delay, 0)) {
                 inDropMode = true;
                 continue;
             }

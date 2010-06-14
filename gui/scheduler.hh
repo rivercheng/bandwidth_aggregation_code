@@ -13,7 +13,7 @@ class Sender;
 class ActiveConnection;
 class Scheduler : public QThread {
 public:
-    Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict, QObject *parent = 0);
+    Scheduler(const QHostAddress& dstAddr, quint16 dstPort, FlowDict *dict, int max_delay, int min_delay, QObject *parent = 0);
     void run(void);
     void send(const QByteArray & packet) {
         QMutexLocker locker(&bufferMutex_);
@@ -36,5 +36,7 @@ private:
     bool    inDropMode;
     bool    toStop;
     QList<ActiveConnection*>  activeConnections_;
+    int     max_delay;
+    int     min_delay;
 };
 #endif

@@ -12,7 +12,7 @@ class QUdpSocket;
 class Listener : public QObject {
     Q_OBJECT
 public:
-    Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, int b, int k, FlowDict *dict);
+    Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, int b, int k, FlowDict *dict, int max_delay, int min_delay, QObject *parent=0);
     virtual ~Listener();
 private slots:
     void processPendingDatagrams();

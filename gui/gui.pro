@@ -13,5 +13,5 @@ CONFIG += qt debug
 # Input
 HEADERS += flowratehistory.hh flowrategraph.hh listAddr.hh \
            listener.hh scheduler.hh sender.hh updater.hh \
-           config.hh mainwindow.hh splitter.hh interfaceInfo.hh routeProcessor.hh looper.hh
-SOURCES += main.cc listAddr.cc listener.cc scheduler.cc sender.cc mainwindow.cc splitter.cc interfaceInfo.cc routeProcessor.cc
+           config.hh mainwindow.hh interfaceInfo.hh routeProcessor.hh looper.hh
+SOURCES += main.cc listAddr.cc listener.cc scheduler.cc sender.cc mainwindow.cc interfaceInfo.cc routeProcessor.cc

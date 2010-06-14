@@ -4,8 +4,8 @@
 #include "scheduler.hh"
 #include "listener.hh"
 #include "../include/header.hh"
-Listener::Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, int b, int k, FlowDict *dict)
-    :udpSocket_(socket), b_(b), k_(k), id_(0), timer_(0), resetTimer_(0)
+Listener::Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, int b, int k, FlowDict *dict, int max_delay, int min_delay, QObject *parent)
+    :QObject(parent), udpSocket_(socket), b_(b), k_(k), id_(0), timer_(0), resetTimer_(0)
 {
     timer_ = new QTimer(this);
     connect(timer_, SIGNAL(timeout()), this, SLOT(keeplive()));
@@ -14,7 +14,7 @@ Listener::Listener(QUdpSocket *socket, QHostAddress dstAddr, quint16 dstPort, in
     connect(resetTimer_, SIGNAL(timeout()), this, SLOT(reset()));
 
     chunks_.resize(10000);
-    scheduler_ = new Scheduler(dstAddr, dstPort, dict, this);
+    scheduler_ = new Scheduler(dstAddr, dstPort, dict, max_delay, min_delay, this);
     connect(udpSocket_, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
     scheduler_->start();
 
