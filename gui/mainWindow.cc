@@ -201,4 +201,7 @@ void MainWindow::exit() {
     emit quit();
 }
 
-
+void MainWindow::closeEvent(QCloseEvent *event) {
+    (void) event;
+    emit quit();
+}

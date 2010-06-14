@@ -20,6 +20,7 @@ public slots:
         mainWindow->startListener();
     }
     void exit() {
+        delete mainWindow;
         emit quit();
     }
 signals:

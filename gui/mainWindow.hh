@@ -32,6 +32,7 @@ private:
     void setupConfigInput(QVBoxLayout *layout);
     void setRoute();
     void removeRules();
+    void closeEvent(QCloseEvent *event);
 private:
     Config *config;
     //QList<Interface> infs;

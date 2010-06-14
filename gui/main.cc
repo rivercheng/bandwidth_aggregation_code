@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     config.max_delay = 4;
     config.min_delay = 2;
 
-    Looper looper(&config);
+    Looper looper(&config, &app);
     QObject::connect(&looper, SIGNAL(quit()), &app, SLOT(quit()));
     
     app.exec();
